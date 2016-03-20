@@ -1,7 +1,0 @@
-OpVariable:
-	creates a pointer.
-	Result type must be an OpTypePointer.
-OpAccessChain: base must be a pointer, pointing to the base of a composite object.
-
-
-2.18.2 Aliasing

@@ -1,5 +1,9 @@
 git reset HEAD <file>                   取消暂存
-git checkout -- <file>                  取消修改
+git checkout -- <file>                  取消未暂存修改
+git checkout .                          取消所有未暂存修改
+git reset --soft HEAD~                  重置HEAD到上一次commit之前的位置，暂存区和工作区内容不变
+git reset [--mixed] HEAD~               重置HEAD到上一次commit之前的位置，重置暂存区，工作区内容不变
+git reset --hard HEAD~                  重置HEAD到上一次commit之前的位置，重置暂存区，重置工作区
 
 git remote -v                           查看远程仓库
 git ls-remote <rmt-name>                查看远程分支
@@ -7,7 +11,6 @@ git remote show <rmt-name>              查看某个远程仓库的分支，以�
 git remote add name url                 添加远程仓库
 git remote rename                       远程仓库重命名
 git remote rm                           远程仓库移除
-
 
 git fetch <rmt-name>                    拉取远程仓库的所有分支
 git pull                                抓取自动跟踪的远程分支并合并
@@ -44,5 +47,7 @@ git diff src_br target_br               比较两个branch的差异
 origin                                  git clone 产生的默认远程仓库名
 master                                  git clone 自动设置本地master分支跟踪远程仓库的master分支
                                         git init 默认创建master分支
-HEAD                                    指向当前所在的本地分支
+HEAD                                    指向当前所在的本地分支(git commit)
+INDEX                                   暂存区(git add)
+Working Dir                             未暂存修改
 

@@ -1,0 +1,13 @@
+ISO10646 = UCS (Universal Character Set)
+分为UCS-2和UCS-4。UCS-2等于UTF16，UCS-4等于UCS-2补上2个空byte。
+
+Unicode中的中文：CJK Unification，将中、日、韩文中写法近似的汉字，以一个单码代表。叫做Unihan统汉字。一共有二万多个。分布在U+3400 ~ U+9FFF 和 U+F900 ~ U+FAFF之间。Big5和GB2312在U+4E00~U+9FFF。
+
+UTF8	变长编码
+	U+0000 ~ U+007E 0xxxxxxx
+	U+0080 ~ U+07FF 110xxxxx 10xxxxxx
+	U+0800 ~ U+FFFF 1110xxxx 10xxxxxx 10xxxxxx 
+
+UTF16	Unicode双byte编码的实现，等同于UCS-2
+	代理对：U+D800~U+DFFF，分高部(U+D800~U+DBFF)和低部(U+DC00~U+DFFF)，各1024个码位。可表示1024^2=100w个unicode码。这部分编码，高部和低部各占用2字节，共4字节。
+	代理对的编码机制，和原先不需要使用代理对的六万三千多个基本Unicode码，合起来叫UTF-16。

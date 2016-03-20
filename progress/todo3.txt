@@ -1,0 +1,16 @@
+ar face recognition(眨眼玩法，甩掉蚊子)
+Gangstar2的BehaviorTree
+OpCode(碰撞检测库)
+RakNet
+lua
+常见3D文件格式(.mesh)
+windows调试技巧
+3DMAX	做模型
+
+
+
+
+
+
+
+图像处理

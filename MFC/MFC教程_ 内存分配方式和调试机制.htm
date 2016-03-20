@@ -1,0 +1,352 @@
+
+<!-- saved from url=(0042)http://www.vczx.com/tutorial/mfc/mfc10.php -->
+<HTML><HEAD><META http-equiv="Content-Type" content="text/html; charset=GBK"><TITLE>MFC教程_ 内存分配方式和调试机制</TITLE>
+
+<META content="MSHTML 6.00.2800.1458" name="GENERATOR"></HEAD><BODY bgcolor="#ffffff">
+<OL start="10">
+  <P align="justify">
+  </P><LI><A name="_Toc445889121"></A><A name="_Toc445782524"></A><A name="_Toc452640983"></A><A name="_Toc457299092"></A><B>内存分配方式和调试机制</B> 
+  <P></P>
+  <OL>
+    <P align="justify">
+    </P><LI><B><A name="_Toc445889122"></A><A name="_Toc445782525"></A><A name="_Toc452640984"></A><A name="_Toc457299093"></A>M内存分配</B> 
+    <P></P>
+    <OL>
+      <P align="justify">
+      </P><LI><B><A name="_Toc445889123"></A><A name="_Toc445782526"></A><A name="_Toc452640985"></A><A name="_Toc457299094"></A>内存分配函数</B> 
+      <P></P></LI></OL></LI></OL></LI></OL>
+<P align="justify">MFCWin32或者C语言的内存分配API，有四种内存分配API可供使用。</P>
+<OL>
+  <P align="justify">
+  </P><LI>Win32的堆分配函数 
+  <P></P>
+  <P align="justify">每一个进程都可以使用堆分配函数创建一个私有的堆──调用进程地址空间的一个或者多个页面。DLL创建的私有堆必定在调用DLL的进程的地址空间内，只能被调用进程访问。</P>
+  <P align="justify">HeapCreate用来创建堆；HeapAlloc用来从堆中分配一定数量的空间，HeapAlloc分配的内存是不能移动的；HeapSize可以确定从堆中分配的空间的大小；HeapFree用来释放从堆中分配的空间；HeapDestroy销毁创建的堆。</P>
+  <P align="justify"></P>
+  </LI><LI>Windows传统的全局或者局部内存分配函数 
+  <P></P>
+  <P align="justify">由于Win32采用平面内存结构模式，Win32下的全局和局部内存函数除了名字不同外，其他完全相同。任一函数都可以用来分配任意大小的内存（仅仅受可用物理内存的限制）。用法可以和Win16下基本一样。</P>
+  <P align="justify">Win32下保留这类函数保证了和Win16的兼容。</P>
+  <P align="justify"></P>
+  </LI><LI>C语言的标准内存分配函数 
+  <P></P>
+  <P align="justify">C语言的标准内存分配函数包括以下函数：</P>
+  <P align="justify">malloc，calloc，realloc，free，等。</P>
+  <P align="justify">这些函数最后都映射成堆API函数，所以，malloc分配的内存是不能移动的。这些函数的调式版本为</P>
+  <P align="justify">malloc_dbg，calloc_dbg，realloc_dbg，free_dbg，等。</P>
+  <P align="justify"></P>
+  </LI><LI>Win32的虚拟内存分配函数 
+  <P></P></LI></OL>
+<P align="justify">虚拟内存API是其他API的基础。虚拟内存API以页为最小分配单位，X86上页长度为4KB，可以用GetSystemInfo函数提取页长度。虚拟内存分配函数包括以下函数：</P>
+<UL>
+  <P align="justify">
+  </P><LI>LPVOID VirtualAlloc(LPVOID lpvAddress, 
+  <P></P></LI></UL>
+<DIR>
+<P align="justify">DWORD cbSize,</P>
+<P align="justify">DWORD fdwAllocationType,</P>
+<P align="justify">DWORD fdwProtect);</P></DIR>
+<P align="justify">该函数用来分配一定范围的虚拟页。参数1指定起始地址；参数2指定分配内存的长度；参数3指定分配方式，取值MEM_COMMINT或者MEM_RESERVE；参数4指定控制访问本次分配的内存的标识，取值为PAGE_READONLY、PAGE_READWRITE或者PAGE_NOACCESS。</P>
+<UL>
+  <P align="justify">
+  </P><LI>LPVOID VirtualAllocEx(HANDLE process, 
+  <P></P></LI></UL>
+<DIR>
+<P align="justify">LPVOID lpvAddress,</P>
+<P align="justify">DWORD cbSize,</P>
+<P align="justify">DWORD fdwAllocationType,</P>
+<P align="justify">DWORD fdwProtect);</P></DIR>
+<P align="justify">该函数功能类似于VirtualAlloc，但是允许指定进程process。VirtaulFree、VirtualProtect、VirtualQuery都有对应的扩展函数。</P>
+<UL>
+  <P align="justify">
+  </P><LI>BOOL VirtualFree(LPVOID lpvAddress, 
+  <P></P></LI></UL>
+<DIR>
+<P align="justify">DWORD dwSize,</P>
+<P align="justify">DWORD dwFreeType);</P></DIR>
+<P align="justify">该函数用来回收或者释放分配的虚拟内存。参数1指定希望回收或者释放内存的基地址；如果是回收，参数2可以指向虚拟地址范围内的任何地方，如果是释放，参数2必须是VirtualAlloc返回的地址；参数3指定是否释放或者回收内存，取值为MEM_DECOMMINT或者MEM_RELEASE。</P>
+<UL>
+  <P align="justify">
+  </P><LI>BOOL VirtualProtect(LPVOID lpvAddress, 
+  <P></P></LI></UL>
+<DIR>
+<P align="justify">DWORD cbSize,</P>
+<P align="justify">DWORD fdwNewProtect,</P>
+<P align="justify">PDWORD pfdwOldProtect);</P></DIR>
+<P align="justify">该函数用来把已经分配的页改变成保护页。参数1指定分配页的基地址；参数2指定保护页的长度；参数3指定页的保护属性，取值PAGE_READ、PAGE_WRITE、PAGE_READWRITE等等；参数4用来返回原来的保护属性。</P>
+<UL>
+  <P align="justify">
+  </P><LI>DWORD VirtualQuery(LPCVOID lpAddress, 
+  <P></P></LI></UL>
+<DIR>
+<P align="justify">PMEMORY_BASIC_INFORMATION lpBuffer,</P>
+<P align="justify">DWORD dwLength</P>
+<P align="justify">);</P></DIR>
+<P align="justify">该函数用来查询内存中指定页的特性。参数1指向希望查询的虚拟地址；参数2是指向内存基本信息结构的指针；参数3指定查询的长度。</P>
+<P align="justify"></P>
+<UL>
+  <P align="justify">
+  </P><LI>BOOL VirtualLock(LPVOID lpAddress,DWORD dwSize); 
+  <P></P></LI></UL>
+<P align="justify">该函数用来锁定内存，锁定的内存页不能交换到页文件。参数1指定要锁定内存的起始地址；参数2指定锁定的长度。</P>
+<UL>
+  <P align="justify">
+  </P><LI>BOOL VirtualUnLock(LPVOID lpAddress,DWORD dwSize); 
+  <P></P></LI></UL>
+<P align="justify">参数1指定要解锁的内存的起始地址；参数2指定要解锁的内存的长度。</P>
+<OL>
+  <OL>
+    <OL>
+      <P align="justify">
+      </P><LI><A name="_Toc445889124"></A><A name="_Toc445782527"></A><A name="_Toc452640986"></A><A name="_Toc457299095"></A><B>C++的new 和 
+      delete操作符</B> 
+      <P></P></LI></OL></OL></OL>
+<P align="justify">MFC定义了两种作用范围的new和delete操作符。对于new，不论哪种，参数1类型必须是size_t，且返回void类型指针。</P>
+<OL>
+  <P align="justify">
+  </P><LI>全局范围内的new和delete操作符 
+  <P></P>
+  <P align="justify">原型如下：</P>
+  <P align="justify">void _cdecl ::operator new(size_t nSize);</P>
+  <P align="justify">void __cdecl operator delete(void* p);</P>
+  <P align="justify">调试版本：</P>
+  <P align="justify">void* __cdecl operator new(size_t nSize, int nType, </P>
+  <P align="justify">LPCSTR lpszFileName, int nLine)</P>
+  <P align="justify"></P>
+  </LI><LI>类定义的new和delete操作符 
+  <P></P></LI></OL>
+<P align="justify">原型如下：</P>
+<P align="justify">void* PASCAL classname::operator new(size_t nSize);</P>
+<P align="justify">void PASCAL classname::operator delete(void* p);</P>
+<P align="justify">类的operator new操作符是类的静态成员函数，对该类的对象来说将覆盖全局的operator 
+new。全局的operator new用来给内部类型对象（如int）、没有定义operator new操作符的类的对象分配内存。</P>
+<P align="justify">new操作符被映射成malloc或者malloc_dbg，delete被映射成free或者free_dbg。</P>
+<OL>
+  <OL>
+    <P align="justify">
+    </P><LI><A name="_Toc445889125"></A><A name="_Toc445782528"></A><A name="_Toc452640987"></A><A name="_Toc457299096"></A><B>调试手段</B> 
+    <P></P>
+    <P align="justify">MFC应用程序可以使用C运行库的调试手段，也可以使用MFC提供的调试手段。两种调试手段分别论述如下。</P>
+    <OL>
+      <P align="justify">
+      </P><LI><A name="_Toc445889126"></A><A name="_Toc445782529"></A><A name="_Toc452640988"></A><A name="_Toc457299097"></A><B>C运行库提供和支持的调试功能</B> 
+      <P></P></LI></OL></LI></OL></OL>
+<P align="justify">C运行库提供和支持的调试功能如下：</P>
+<OL>
+  <P align="justify">
+  </P><LI>调试信息报告函数 
+  <P></P>
+  <P align="justify">用来报告应用程序的调试版本运行时的警告和出错信息。包括：</P>
+  <P align="justify">_CrtDbgReport 用来报告调试信息；</P>
+  <P align="justify">_CrtSetReportMode 设置是否警告、出错或者断言信息；</P>
+  <P align="justify">_CrtSetReportFile 设置是否把调试信息写入到一个文件。</P>
+  <P align="justify"></P>
+  </LI><LI>条件验证或者断言宏： 
+  <P></P>
+  <P align="justify">断言宏主要有：</P>
+  <P align="justify">assert 检验某个条件是否满足，不满足终止程序执行。</P>
+  <P align="justify">验证函数主要有：</P>
+  <P align="justify">_CrtIsValidHeapPointer 验证某个指针是否在本地堆中；</P>
+  <P align="justify">_CrtIsValidPointer 验证指定范围的内存是否可以读写；</P>
+  <P align="justify">_CrtIsMemoryBlock 验证某个内存块是否在本地堆中。</P>
+  <P align="justify"></P>
+  </LI><LI>内存（堆）调试： 
+  <P></P></LI></OL>
+<DIR>
+<P align="justify">malloc_dbg 
+分配内存时保存有关内存分配的信息，如在什么文件、哪一行分配的内存等。有一系列用来提供内存诊断的函数：</P></DIR>
+<P align="justify"><B>_</B>CrtMemCheckpoint 保存内存快照在一个_CrtMemState结构中；</P>
+<P align="justify">_CrtMemDifference 比较两个_CrtMemState；</P>
+<P align="justify">_CrtMemDumpStatistics 转储输出一_CrtMemState结构的内容；</P>
+<P align="justify">_CrtMemDumpAllObjectsSince 输出上次快照或程序开始执行以来在堆中分配的所有对象的信息；</P>
+<P align="justify">_CrtDumpMemoryLeaks 检测程序执行以来的内存漏洞，如果有漏洞则输出所有分配的对象。</P>
+<OL>
+  <OL>
+    <OL>
+      <P align="justify">
+      </P><LI><A name="_Toc445889127"></A><A name="_Toc445782530"></A><A name="_Toc452640989"></A><A name="_Toc457299098"></A><B>MFC提供的调试手段</B> 
+      <P></P></LI></OL></OL></OL>
+<P align="justify">MFC在C运行库提供和支持的调试功能基础上，设计了一些类、函数等来协助调试。</P>
+<OL>
+  <P align="justify">
+  </P><LI>MFC的TRACE、ASSERT 
+  <P></P>
+  <P align="justify">ASSERT</P>
+  <P align="justify">使用ASSERT断言判定程序是否可以继续执行。</P>
+  <P align="justify">TRACE</P>
+  <P align="justify">使用TRACE宏显示或者打印调试信息。TRACE是通过函数AfxTrace实现的。由于AfxTrace函数使用了cdecl调用约定，故可以接受个数不定的参数，如同printf函数一样。它的定义和实现如下：</P>
+  <P align="justify">void AFX_CDECL AfxTrace(LPCTSTR lpszFormat, ...)</P>
+  <P align="justify">{</P>
+  <P align="justify">#ifdef _DEBUG // all AfxTrace output is controlled by 
+  afxTraceEnabled</P>
+  <P align="justify">if (!afxTraceEnabled)</P>
+  <P align="justify">return;</P>
+  <P align="justify">#endif</P>
+  <P align="justify"></P>
+  <P align="justify">//处理个数不定的参数</P>
+  <P align="justify">va_list args;</P>
+  <P align="justify">va_start(args, lpszFormat);</P>
+  <P align="justify"></P>
+  <P align="justify">int nBuf;</P>
+  <P align="justify">TCHAR szBuffer[512];</P>
+  <P align="justify"></P>
+  <P align="justify">nBuf = _vstprintf(szBuffer, lpszFormat, args);</P>
+  <P align="justify">ASSERT(nBuf &lt; _countof(szBuffer));</P>
+  <P align="justify"></P>
+  <P align="justify">if ((afxTraceFlags &amp; traceMultiApp) &amp;&amp; 
+  (AfxGetApp() != NULL))</P>
+  <P align="justify">afxDump &lt;&lt; AfxGetApp()-&gt;m_pszExeName &lt;&lt; ": 
+  ";</P>
+  <P align="justify">afxDump &lt;&lt; szBuffer;</P>
+  <P align="justify"></P>
+  <P align="justify">va_end(args);</P>
+  <P align="justify">}</P>
+  <P align="justify">#endif //_DEBUG</P>
+  <P align="justify"></P>
+  <P align="justify">在程序源码中，可以控制是否显示跟踪信息，显示什么跟踪信息。如果全局变量afxTraceEnabled为TRUE，则TRACE宏可以输出；否则，没有TRACE信息被输出。如果通过afxTraceFlags指定了跟踪什么消息，则输出有关跟踪信息，例如为了指定“Multilple 
+  Application Debug”，令AfxTraceFlags|=traceMultiApp。可以跟踪的信息有：</P>
+  <P align="justify">enum AfxTraceFlags</P>
+  <P align="justify">{</P>
+  <P align="justify">traceMultiApp = 1, // multi-app debugging</P>
+  <P align="justify">traceAppMsg = 2, // main message pump trace (includes 
+DDE)</P>
+  <P align="justify">traceWinMsg = 4, // Windows message tracing</P>
+  <P align="justify">traceCmdRouting = 8, // Windows command routing trace </P>
+  <P align="justify">//(set 4+8 for control notifications)</P>
+  <P align="justify">traceOle = 16, // special OLE callback trace</P>
+  <P align="justify">traceDatabase = 32, // special database trace</P>
+  <P align="justify">traceInternet = 64 // special Internet client trace</P>
+  <P align="justify">};</P>
+  <P align="justify">这样，应用程序可以在需要的地方指定afxTraceEnabled的值打开或者关闭TRACE开关，指定AfxTraceFlags的值过滤跟踪信息。</P>
+  <P align="justify">Visual C++提供了一个TRACE工具，也可以用来完成上述功能。</P>
+  <P align="justify"></P>
+  <P align="justify">为了显示消息信息，MFC内部定义了一个AFX_MAP_MESSAG类型的数组allMessages，储存了Windows消息和消息名映射对。例如：</P>
+  <P align="justify">allMessages[1].nMsg = WM_CREATE,</P>
+  <P align="justify">allMessages[1].lpszMsg = “WM_CREATE”</P>
+  <P align="justify">MFC内部还使用函数_AfxTraceMsg显示跟踪消息，它可以接收一个字符串和一个MSG指针，然后，把该字符串和MSG的各个域的信息组合成一个大的字符串并使用AfxTrace显示出来。</P>
+  <P align="justify">allMessages和函数_AfxTraceMsg的详细实现可以参见AfxTrace.cpp。</P>
+  <P align="justify"></P>
+  </LI><LI>MFC对象内容转储 
+  <P></P>
+  <P align="justify">对象内容转储是CObject类提供的功能，所有从它派生的类都可以通过覆盖虚拟函数DUMP来支持该功能。在讲述CObject类时曾提到过。</P>
+  <P align="justify">虚拟函数Dump的定义：</P>
+  <P align="justify">class ClassName : public CObject</P>
+  <P align="justify">{</P>
+  <P align="justify">public:</P>
+  <P align="justify">#ifdef _DEBUG</P>
+  <P align="justify">virtual void Dump( CDumpContext&amp; dc ) const;</P>
+  <P align="justify">#endif</P>
+  <P align="justify">…</P>
+  <P align="justify">};</P>
+  <P align="justify">在使用Dump时，必须给它提供一个CDumpContext类型的参数，该参数指定的对象将负责输出调试信息。为此，MFC提供了一个预定义的全局CDumpContext对象afxDump，它把调试信息输送给调试器的调试窗口。从前面AfxTrace的实现可以知道，MFC使用了afxDump输出跟踪信息到调试窗口。</P>
+  <P align="justify">CDumpContext类没有基类，它提供了以文本形式输出诊断信息的功能。</P>
+  <P align="justify">例如：</P>
+  <P align="justify">CPerson* pMyPerson = new CPerson;</P>
+  <P align="justify">// set some fields of the CPerson object...</P>
+  <P align="justify">//...</P>
+  <P align="justify">// now dump the contents</P>
+  <P align="justify">#ifdef _DEBUG</P>
+  <P align="justify">pMyPerson-&gt;Dump( afxDump );</P>
+  <P align="justify">#endif</P>
+  <P align="justify"></P>
+  </LI><LI>MFC对象有效性检测 
+  <P></P></LI></OL>
+<P align="justify">对象有效性检测是CObject类提供的功能，所有从它派生的类都可以通过覆盖虚拟函数AssertValid来支持该功能。在讲述CObject类时曾提到过。</P>
+<P align="justify">虚拟函数AssertValid的定义：</P>
+<P align="justify">class ClassName : public CObject</P>
+<P align="justify">{</P>
+<P align="justify">public:</P>
+<P align="justify">#ifdef _DEBUG</P>
+<P align="justify">virtual void AssertValid( ) const;</P>
+<P align="justify">#endif</P>
+<P align="justify">… </P>
+<P align="justify">};</P>
+<P align="justify">使用ASSERT_VALID宏判断一个对象是否有效，该对象的类必须覆盖了AssertValid函数。形式为：ASSERT_VALID(pObject)。</P>
+<P align="justify">另外，MFC提供了一些函数来判断地址是否有效，如：</P>
+<P align="justify">AfxIsMemoryBlock，AfxIsString，AfxIsValidAddress。</P>
+<OL>
+  <OL>
+    <OL>
+      <P align="justify">
+      </P><LI><A name="_Toc445889128"></A><A name="_Toc445782531"></A><A name="_Toc452640990"></A><A name="_Toc457299099"></A><B>内存诊断</B> 
+      <P></P></LI></OL></OL></OL>
+<P align="justify">MFC使用DEBUG_NEW来跟踪内存分配时的执行的源码文件和行数。</P>
+<P align="justify">把#define new DEBUG_NEW插入到每一个源文件中，这样，调试版本就使用_malloc_dbg来分配内存。MFC 
+Appwizard在创建框架文件时已经作了这样的处理。</P>
+<OL>
+  <P align="justify">
+  </P><LI>AfxDoForAllObjects 
+  <P></P>
+  <P align="justify">MFC提供了函数AfxDoForAllObjects来追踪动态分配的内存对象，函数原型如下：</P>
+  <P align="justify">void AfxDoForAllObjects( void (*pfn)(CObject* pObject, </P>
+  <P align="justify">void* pContext), void* pContext ); </P>
+  <P align="justify">其中：</P>
+  <P align="justify">参数1是一个函数指针，AfxDoForAllObjects对每个对象调用该指针表示的函数。</P>
+  <P align="justify">参数2将传递给参数1指定的函数。</P>
+  <P align="justify">AfxDoForAllObjects可以检测到所有使用new分配的CObject对象或者CObject类派生的对象，但全局对象、嵌入对象和栈中分配的对象除外。</P>
+  <P align="justify"></P>
+  </LI><LI>内存漏洞检测 
+  <P></P></LI></OL>
+<P align="justify">仅仅用于new的DEBUG版本分配的内存。</P>
+<P align="justify">完成内存漏洞检测，需要如下系列步骤：</P>
+<UL>
+  <P align="justify">
+  </P><LI>调用AfxEnableMemoryTracking(TRUE/FALSE)打开/关闭内存诊断。在调试版本下，缺省是打开的；关闭内存诊断可以加快程序执行速度，减少诊断输出。 
+
+  <P></P>
+  <P align="justify"></P>
+  </LI><LI>使用MFC全局变量afxMemDF更精确地指定诊断输出的特征，缺省值是allocMemDF，可以取如下值或者这些值相或： 
+  <P></P></LI></UL>
+<P align="justify">afxMemDF，delayFreeMemDF，checkAlwaysMemDF</P>
+<P align="justify">其中：allocMemDF表示可以进行内存诊断输出；delayFreeMemDF表示是否是在应用程序结束时才调用free或者delete，这样导致程序最大可能的分配内存；checkAlwaysMemDF表示每一次分配或者释放内存之后都调用函数AfxCheckMemory进行内存检测（AfxCheckMemory检查堆中所有通过new分配的内存（不含malloc））。</P>
+<P align="justify">这一步是可选步骤，非必须。</P>
+<UL>
+  <P align="justify">
+  </P><LI>创建一个CMemState类型的变量oldMemState，调用CMemState的成员函数CheckPoint获得初次内存快照。 
+  <P></P>
+  <P align="justify"></P>
+  </LI><LI>执行了系列内存分配或者释放之后，创建另一个CMemState类型变量newMemState，调用CMemState的成员函数CheckPoint获得新的内存快照。 
+
+  <P></P>
+  <P align="justify"></P>
+  </LI><LI>创建第三个CMemState类型变量difMemState，调用CMemState的成员函数Difference比较oldMemState和newMemState，结果保存在变量difMemState中。如果没有不同，则返回FALSE，否则返回TRUE。 
+
+  <P></P>
+  <P align="justify"></P>
+  </LI><LI>如果不同，则调用成员函数DumpStatistics输出比较结果。 
+  <P></P></LI></UL>
+<P align="justify">例如：</P>
+<P align="justify">// Declare the variables needed</P>
+<P align="justify">#ifdef _DEBUG</P>
+<DIR>
+<P align="justify">CMemoryState oldMemState, newMemState, diffMemState;</P>
+<P align="justify">oldMemState.Checkpoint();</P></DIR>
+<P align="justify">#endif</P>
+<P align="justify"></P>
+<P align="justify">// do your memory allocations and deallocations...</P>
+<P align="justify">CString s = "This is a frame variable";</P>
+<P align="justify">// the next object is a heap object</P>
+<P align="justify">CPerson* p = new CPerson( "Smith", "Alan", "581-0215" );</P>
+<P align="justify"></P>
+<P align="justify">#ifdef _DEBUG</P>
+<DIR>
+<P align="justify">newMemState.Checkpoint();</P>
+<P align="justify">if( diffMemState.Difference( oldMemState, newMemState ) )</P>
+<P align="justify">{</P>
+<DIR>
+<P align="justify">TRACE( "Memory leaked!\n" );</P>
+<P align="justify">diffMemState.DumpStatistics();</P>
+<P align="justify">//or diffMemState.DumpAllObjectsSince();</P></DIR>
+<P align="justify">}</P></DIR>
+<P align="justify">#endif</P>
+<P align="justify">MFC在应用程序（调试版）结束时，自动进行内存漏洞检测，如果存在漏洞，则输出漏洞的有关信息。</P>
+<HR>
+<TABLE width="100%" border="0" cellspacing="0" cellpadding="0" align="center">
+  <TBODY><TR>
+    <TD align="center"><A href="http://www.vczx.com/tutorial/mfc/mfc9.php" target="_self">上一章</A>　<A href="http://www.vczx.com/tutorial/mfc/mfc.php" target="_self">回目录</A>　<A href="http://www.vczx.com/tutorial/mfc/mfc11.php" target="_self">下一章</A></TD>
+  </TR>
+</TBODY></TABLE>
+<P>&nbsp;</P>
+<P align="justify"></P>
+
+</BODY></HTML>

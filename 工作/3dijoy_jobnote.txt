@@ -1,0 +1,119 @@
+程序运行时需要把”dependencies(kylin3d_dep)/platforms/平台名/厂商名/libs”拷贝到机顶盒的NFS共享文件夹, 在运行程序之前需要设置LD_LIBRARY_PATH指向libs文件夹,如:
+#export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:./:../common/broadcom_yuxing:./yuxing_libs
+
+
+==============================================================================================
+
+拿viewproj matrix (PG_MSGR_ACTIVECAMERA)
+
+[todo]
+	影子
+	脚步声
+//	动态物理层
+	EEvent_FALLINTOWATER 进入StateFall, DieState无更新
+
+glowcode
+VLD
+
+
+==============================================================================
+=== bug
+==============================================================================
+TurnToPos() -> mRot
+:SetPosAndRotFromRelative() -> mRot被冲掉 mRot = mParentRot * mRelativeRot; (因为mRelativeRot还是上一帧的数据)
+
+AnimationWeight: m_pSkeleton->SetAnimationWeight()没有清除
+std::ofstream outfile_action( "d:/action.txt" );
+
+过不去：col泄露
+
+==============================================================================
+==============================================================================
+==============================================================================
+获得设施：
+CEntityWorld::GetEntityManager()
+dev_data_t kJInputAPI::getStatusData()
+GetComSlot().GetEntityManager()->RegistEntityInfo(ehandle,IN_PLAYER,playerInfo);
+PlayerInfo* playerInfo = static_cast<PlayerInfo*>( m_pCameraCom->GetComSlot().GetEntityManager()->GetEntityInfo(playerHandle,IN_PLAYER) );
+CRuleLogicInfo* pCRuleLogicInfo = static_cast<CRuleLogicInfo*>( pEntityManager->GetEntityInfo( EEH_Rule0,  RULE_CINFO_NAME ) );
+	mNavigationLevel = pCRuleLogicInfo->GetNavigationLevel();
+
+
+9 21 hr
+9 29 hr
+11 26 hr
+
+==============================================================================
+==  知识点
+==============================================================================
+//OgreMatrix3: m[row][col]
+//四元数乘法：右结合，和列矩阵一样
+//static model = Ogre::StaticGeometry 
+//欧拉角顺序:YXZ
+//矩阵顺序：scale rotate translate， 从右往左
+//四元数轴角：轴是世界坐标。矩阵中提取的四元数，轴是模型坐标，因为SRT顺序,R是在模型空间
+//SPT:最短路径树
+
+==============================================================================
+==  Kylin3D
+==============================================================================
+//初始化顺序: RegisterEntityInfo(), Construct(), CreateRes(), Activate(),
+//StateManager: OnEnter()和第一次Update()同帧
+
+==============================================================================
+==  代码
+==============================================================================
+//frameTime = 10 , sysTime = g_Systime, logicTime = mServerTime
+//通过ehandle拿到EntityInfo
+//CE::RenderEngine()->CreateStaticModel()
+//暴露info：SPlayerInfo* pSInfo = static_cast<SPlayerInfo*>(GetComSlot().GetEntityManager()->GetEntityInfo(ehandle, PLAYER_SINFO_NAME));
+------发消息-------
+EntityManager用MsgServer发送消息到entity
+  CS::GetGame()->GetEntityWorld()->GetEntityManager()->GetMsgServer()->EndSendMsg(EEH_Rule0, EEH_Rule0, PG_MSGR_READYTOCOUNTDOWN, delayTime);
+StateManager发送消息到state
+  pComData->m_pStateManager->SendMsg(msgtype, db); 用statemanager发送消息
+------c/s消息-------
+kDataBuffer *buffer = mPlayerCom->GetComSlot().GetEntityManager()->BeginTriggerEvent();
+buffer->WriteInt(colData->mHandle);
+mPlayerCom->GetComSlot().GetEntityManager()->EndTriggerEvent(EEvent_ITEM_COLLISION,srcEHandle,ED_SERVER);
+
+mClientSession.SendServer(); 在房间和loading阶段使用
+
+拿config：
+CE::ConfigFile()->GetConfig("resource")
+
+------[flash字体统一]----------
+fontconfig.txt里面： 
+1 不要fontlib "gfx_font_ch.swf"， 由大厅统一加载字体文件
+2 只留map "$FitGameFont" = "Arial" Normal，其他删除(更新UI文件)
+
+
+
+
+
+
+------设施---------
+OpCode
+ParticleUniverse
+
+mCSDT 貌似设置好就不用管了，同步VC的？
+
+
+../../../ = motionpark
+motionpark:
+	include
+	kylin3d_sdk
+	dependencies
+../
+	kylin3d_ext
+	
+
+E:\svn@svn.3dijoy.com\motionpark\binc\common\bin32d\appConsole.exe
+E:\svn@svn.3dijoy.com\motionpark\binc\casuals\gear\bin32d\game.cfg
+E:\svn@svn.3dijoy.com\motionpark\binc\common\bin32d\
+
+c/s通讯模型
+逻辑运行在s端，c端同步渲染，碰撞等事件以通知发给s端
+逻辑运行在c端，关键逻辑发到s端验证。验证不通过要有行为的revert机制
+逻辑运行在c端，s端同步状态到其他客户端，需要状态转换tick机制，s端比c端更新慢
+

@@ -1,0 +1,40 @@
+http://blog.icare3d.org/2011/06/free-3d-meshes-links.html
+
+Free 3D meshes links
+Jun 26, 2011 at 4:58 PM Labels: Computer Graphics
+I started to compile links to websites where free 3D models can be found. If you know other good websites, feal free to post them in the comments :-)
+
+Static models and scenes:
+Great collection of models for scientific publications on Morgan McGuire webpage: http://graphics.cs.williams.edu/data/meshes.xml
+3D Render challenge: http://www.3drender.com/challenges/
+Crytek: http://www.crytek.com/cryengine/cryengine3/downloads
+Keenan Crane : http://www.cs.caltech.edu/~keenan/models.html
+Sibenik model: http://hdri.cgtechniques.com/~sibenik2/download/
+AIM@Shape : http://shapes.aimatshape.net/
+Characters Creative Common: http://artist-3d.com/
+Characters: http://www.3dvalley.com/3d-models/characters
+Blender files: http://www.blendswap.com/3D-models/category/featured/
+Archive 3D: http://archive3d.net/
+
+Animated models and scenes:
+
+Ingo Wald: http://www.sci.utah.edu/~wald/animrep/
+MIT CSAIL 1: http://people.csail.mit.edu/drdaniel/mesh_animation/index.html
+MIT CSAIL 2: http://people.csail.mit.edu/drdaniel/dynamic_shape/index.html
+MIT Animals and Face: http://people.csail.mit.edu/sumner/research/deftransfer/data.html
+Face data: http://grail.cs.washington.edu/software-data/stfaces/index.html 
+Pants: http://www.ryanmwhite.com/research/cloth_cap.html
+
+
+
+comments
+=====================================================
+http://grail.cs.washington.edu/software-data/stfaces/index.html
+http://people.csail.mit.edu/sumner/research/deftransfer/data.html#download
+http://www.ryanmwhite.com/research/cloth_cap.html
+http://4drepository.inrialpes.fr/pages/home
+http://www.cs.caltech.edu/~njlitke/meshes/ (dated)
+
+http://graphics.stanford.edu/data/3Dscanrep/ (dated)
+http://ai.stanford.edu/~drago/Projects/scape/scape.html (email prof. James Davis ( davis at soe.ucsc.edu ) to get the password, it worths it)
+http://www.mpi-inf.mpg.de/resources/deformableShapeMatching

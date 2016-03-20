@@ -1,0 +1,10 @@
+Debugging DirectX p60
+
+1 定义STRICT宏在包含windows.h之前。使用严格类型检查。
+2 内存管理器： BoundsChecker商业版
+3 使用VTune，先下载windows符号文件
+4 OutputDebugString()输出信息到IDE
+5 使用debug贴图来检查贴图对齐、过滤问题。用另一种颜色绘制贴图或者使用text来观察对齐。
+6 调试全屏程序需要多显示器
+
+返回值：检查返回值HRESULT,使用宏SUCCEEDED()和FAILED()

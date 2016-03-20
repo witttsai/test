@@ -1,0 +1,79 @@
+ndk-gdb条件：
+1 使用ndk-build生成
+2 AndroidManifest.xml中android:debuggable="true"
+3 2.2以上运行设备
+4 启动然后执行file中的gdb命令 ndk-gdb [--exec=file]
+5 .gdbinit 是gdb默认搜索的初始化命令文件
+
+启动方法：
+1、安装Development.apk。由模拟器获得(adb -e pull /system/app/Development.apk ./Development.apk)。
+2、Dev Tools中，进入Development Settings，设置Debug app，Wait for debugger。
+3、启动待调试app，app会停住。
+4、eclipse中设置好断点。
+5、eclipse的DDMS视图中，点击绿色debug图标，debugger连接，app启动。
+6、停在断点处。
+7、启动ndk-gdb。(不要--start和--force参数)
+8、jdb和gdb同时连接完毕。
+注：eclipse的DDMS视图中，点击绿色bug标志，会自动连接调试器
+
+发送中断: kill -2 pid
+
+shell command 执行unix shell命令
+
+---命令--------------------------------
+break b
+b <function>
+b xxx.cpp:linenum
+
+n step
+s step in
+finish step out
+u until 执行到循环结束
+
+watch <expr> 变化时
+rwatch <expr> 读时
+awatch <expr> 写时
+
+条件断点
+break if i=100
+watch if i>100
+修改条件
+condition <bnum> <expr>
+
+info address sym 显示sym的地址
+
+显示栈
+bt (backtrace)
+bt n, bt -n
+
+移动栈
+f (frame)
+f n
+f up, f down
+
+dir 增加src目录
+
+info args 打印当前函数参数
+info locals 打印当前函数中所有局部变量
+info catch 打印当前函数的异常处理信息
+
+p *array@len 打印数组
+p/x p/c p/f 打印格式
+display/<fmt> <expr> 每次停住时显示变量
+display/<fmt> <addr> 每次停住时显示地址
+
+whatis i 打印变量类型
+set var i=4 设置变量值
+
+jump <linespec>
+指定下一条语句的运行点。<linespce>可以是文件的行号，可以是file:line格式，可以是+num这种偏移量格式。表示着下一条运行语句从哪里开始。jump前要加上断点，不然会继续往下执行，
+
+执行函数, 在当前函数栈顶执行
+call (int)close(fd)
+
+
+
+
+
+
+

@@ -1,0 +1,98 @@
+从ndk-build传入debug， release， 不用全部重新编译
+
+/////////////////////////////////////////////////////////////////////////////
+/// 主要执行流程
+/////////////////////////////////////////////////////////////////////////////
+初始化：
+winmain()
+	InitAuras();	//创建窗口和初始化opengl
+	CallBackMgr::init(CALLBACKMGR_INIT_MAX);
+	CallBackMgr::registerCallBack(Event::APP_EXIT...)	//完结回调，停止消息循环
+	IPlayable::IPlayable_Init();	//注册IPlayable::updateCallback()为ENTER_FRAME, 此函数更新所有动画
+	Stage::Stage_init();	//注册Stage的所有事件，鼠标、激活、退出
+	Stage::getInstance().addChildAt(NEW SpaceCannon() , 0);		//MainEntrance是DisplayObjectContainer，作为Stage下游戏的总接点
+	return StartAuras();	//进入主循环
+	
+主循环：AurasPlatform.cpp:StartAuras()
+	FRAME_FUNC();	//发送Event::ENTER_FRAME
+		CallBackMgr::registerCallBack(Event::ENTER_FRAME , GameObjectMgr::onUpdateCallBack);
+		CallBackMgr::registerCallBack(Event::ENTER_FRAME ,	CannonMain::EnterFrame ,	this);
+		CallBackMgr::registerCallBack(Event::ENTER_FRAME , ObstacleMgr::onUpdateCallBack);
+		CallBackMgr::registerCallBack(Event::ENTER_FRAME,	PageMainMenu::EnterFrame ,	this);
+		CallBackMgr::registerCallBack(Event::ENTER_FRAME , PhysicsEnv::onUpdateCallBack);
+	Stage::Render();
+	notifyEvent(Event::EXIT_FRAME);
+		CallBackMgr::registerCallBack(Event::EXIT_FRAME ,WinLoseLogic::onUpdateCallBack , this );
+
+状态切换：
+	注册UserEvent::STATE_CREATE，UserEvent::STATE_DISPOSE的callback，在注册的函数中响应状态进入/退出。
+	主要的状态处理函数:
+		SpaceCannon::onStateCreate()
+		SpaceCannon::onStateDispose()
+	切换方法：StateManager::getInstance().switchState(STATE::IN_GAME);
+
+关卡初始化/清理：
+	SpaceCannon::createInGameData()
+		new GameWorld 显示层级管理
+		new TileBasedMap
+		new EnemyAIManager 寻路
+		new PhysicsEnv 碰撞检测
+		new GameFireLogic 开炮，装填
+		new GridBuffLogic 处理地面buff
+		new CrushLogic 处理碾压
+		new BurningTrackLogic 燃烧轨迹
+		new TripleLogic 三消逻辑
+		new EffectLogic 响应事件播放特效
+		new InsectSkillLogic 昆虫技能逻辑
+		new GameObjectMgr 仅作为GO的容器
+		new CannonFortManager 添加删除炮台
+		new ObstacleMgr 更新关卡读入的内容
+		new EnemyManager 刷怪，获得指定位置的怪
+		new CannonMain 主炮
+		new WinLoseLogic 胜利条件
+		new EnemyDebugView 编译PC版调试界面
+		new InfoViewer 绘制信息，高亮格子
+		new MenuManager	游戏内菜单
+		new StoryBoardMgr 
+	SpaceCannon::freeInGameData()
+	
+敌人的AI处理流程
+	Insect的INSECT_STATE_THINKING:
+		searchingPath()
+			EnemyAIManager::getNextDir()
+				buff->effect();
+		
+/////////////////////////////////////////////////////////////////////////////
+/// 渲染
+/////////////////////////////////////////////////////////////////////////////
+主渲染：AurasPlatform.cpp: Stage::Render();
+
+AnimeShape	-GraphicsSequence	-IPlayableDisplayObject	-IPlayable
+			\RelationPointer	\Shape					-DisplayObject	-InteractiveMouseObject
+														\IDrawable
+
+InteractiveMouseObject： 处理鼠标事件
+IDrawable： 附带一个Graphics, Graphics保存所有的绘图指令
+DisplayObject： 层级变换和RenderInfo,其中包括mask，mask设置一个绘图物体成为opengl stencil
+Shape：	完全依靠附带的Graphics绘图
+
+IPlayable：	动画函数接口
+IPlayableDisplayObject： IPlayable组合上一个DisplayObject指针
+GraphicsSequence；	帧动画实现
+AnimeShape： 动画的读取保存
+
+DisplayObject::setColorTransformAM() 设置alpha乘数
+
+/////////////////////////////////////////////////////////////////////////////
+/// TextField
+/////////////////////////////////////////////////////////////////////////////
+TextField::computeLayout()
+	m_textFormat.getFont()->formatText(TextField, m_textFormat)
+		writeQuickData()
+			writeAQuickData()
+	把TextField的文本写入TextField.m_quickDrawData;数据实际为颜色、贴图id、顶点坐标和UV
+	
+TextField::render()
+	m_textFormat.render(m_stageTransform , m_renderInfo , m_mouseLevel , *this);
+	通过这个调用可以绘制文本
+	m_stageTransform: opengl变换矩阵

@@ -1,0 +1,6 @@
+Activity： 包含一个Window, getWindow()获得
+
+WindowManager: 管理窗口和视图，getSystemServvice(WINDOW_SERVICE)获得
+
+
+Display:

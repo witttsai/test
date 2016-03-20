@@ -1,0 +1,105 @@
+/////////////////////////////////////////////////////////////////////////////
+/// 类继承层次
+/////////////////////////////////////////////////////////////////////////////
+
+NPGUIComponent
+	LoadXml()	读取标签的Name和Control
+	LoadXmlProperty()	空
+	
+NPGUIControl : NPGUIComponent
+	全局变量sCaptureControl保存捕获当前操作的控件
+	Parent, Child, Ancestor等功能，管理父子层级关系
+	SetEnable()		产生事件OnActivate()/OnDeactive(), 发送NPGUIEVENT_ACTIVATE, 所有子控件递归调用
+	SetVisible()	产生事件OnShow()/OnHide()
+		默认OnShow()处理:	mParent->Invalid()，发送NPGUIEVENT_SHOW，播放音效
+		默认OnHide()处理:	mParent->Invalid()，发送NPGUIEVENT_HIDE，播放音效
+	设置编辑器内的各项属性
+	设置动画,音效
+	得到控件屏幕坐标和包围盒: GetRenderPTRelative(), GetRenderPTAbsolute(), GetClipedRTAbsolute()
+	鼠标点击信息:
+		GetControlAtPosition()
+		HitTest() 使用RenderRT判定
+	
+	ClientSize: 客户区大小包括子控件的内容大小
+	RenderSize：显示大小
+	mAutoSize：RenderSize跟随ClientSize
+	mAcceptClip: 用父窗口的RenderRect裁剪
+	mAcceptClipInnerRect: 用父窗口的InnerRenderRect裁剪
+	mAcceptDrawInnerRect: 是否画在InnerRenderRect内
+	mAcceptHits: 接收输入
+	mAcceptHitsInnerRect: 使用InnerRenderRect判断点击
+	mAcceptMove: 暂时没用
+	mAcceptRise: 是否可以BringToFront
+	mEnable: 控制Gray，接受点击
+	mClientPD: 四方向留空margin
+	mDockStyle: 停靠在四周，类似VS界面的Dock
+	
+	
+	Update(dt):
+		更新循环动画和当前动画
+		if (mInvalid)
+			UpdateInvalid()	确保ClientSize不小于RenderSize，然后PerformLayout()
+		更新可见子控件
+	
+	Render()
+		先画后项：render到控件RenderPool里，然后提交给NP2DSRenderStep,产生NPGUIEVENT_RENDER_BACK事件
+		再画前项，和后项同样方法,产生NPGUIEVENT_RENDER_FORE事件
+		渲染当前动画和循环动画。不使用RenderPool缓冲
+		渲染所有可见和通过裁剪的子项
+		渲染末项，和前项后项同样方法,产生NPGUIEVENT_RENDER_TAIL事件
+		
+	ProcEvent()
+		消息冒泡机制，所有父控件都会响应消息
+			
+NPGUIPanel : NPGUIControl
+	作为容器在Control的基础上增加Layout功能
+NPGUIManager : NPGUIPanel
+	接收并转发输入事件，见下面“输入流程”部分
+	本身作为GUI系统的根容器，可以用AddChild()添加其他窗口
+	单独维护了一个HudList队列，在Control系统之前渲染
+	消息队列功能，目前有如下消息
+		删除控件
+		设置焦点
+		设置淡入淡出
+		
+	
+
+	
+/////////////////////////////////////////////////////////////////////////////
+/// 输入流程
+/////////////////////////////////////////////////////////////////////////////
+	系统的输入事件依次发送到
+		1、NPGUITouchProc	-> 直接转发给NPGUIManager
+			NPGUIManager:
+				ON_MOUSE_DOWN():
+					1、查找命中的控件，模态窗口优先，子控件优先
+					2、调用命中控件的OnGainFocus()/OnLostFocus()函数
+					3、调用命中控件的OnMouseDown()
+						NPGUIControl::OnMouseDown():
+							1、设置捕获输入
+							2、把消息映射到相关虚函数
+							3、维护拖拽状态
+				ON_MOUSE_UP():
+					1、调用当前捕获控件的OnMouseUp()
+						NPGUIControl::OnMouseUp()
+							1、释放捕获
+							2、维护拖拽状态
+							3、测试命中并调用OnMouseClick()
+				ON_MOUSE_MOVE():
+					1、查找悬浮位置控件，模态窗口优先，子控件优先
+					2、调用命中控件的OnMouseEnter()/OnMouseLeave()
+					3、调用捕获控件或命中控件的OnMouseMove()
+
+		2、NPTouchManager
+			如果NPGUIManager占有输入焦点或者有模态对话框，则消息不会到达NPTouchManager::OnEvent()
+			OnEvent():
+				分配多点触摸ID并存入队列
+	NPTouchManager的更新分析收到的数据：
+		Update():
+			判断当前帧是否有手指没动 ,没动的手指当作MOUSE_MOVE处理
+			根据输入事件判断当前多点触摸状态mTouchState
+		PostUpdate():
+			保存TouchInfo队列
+			维护多点触摸map
+		
+		

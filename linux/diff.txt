@@ -1,0 +1,57 @@
+【vimdiff】
+Keyboard Shortcuts:
+:do - Get changes from other window into the current window.
+:dp - Put the changes from current window into the other window.
+]c - Jump to the next change.
+[c - Jump to the previous change.
+Ctrl W + Ctrl W - Switch to the other split window.
+vim分屏(:vs或:sp)的情况下，使用:diffthis命令打开diff， 使用:diffoff命令关闭diff
+zo 打开折叠
+zc 折叠
+:diffupdate 手工刷新
+
+【unified格式】
+diff -u	file1 file2
+	@@ -1,7 +1,6 @@ 开始一个段落, +,-代表两个文件; -1,7表示start,count
+	 --- lao	2002-02-21 23:30:39.942229878 -0800
+     +++ tzu	2002-02-21 23:30:50.442260588 -0800
+     @@ -1,7 +1,6 @@
+     -The Way that can be told of is not the eternal Way;
+     -The name that can be named is not the eternal name.
+      The Nameless is the origin of Heaven and Earth;
+     -The Named is the mother of all things.
+     +The named is the mother of all things.
+     +
+      Therefore let there always be non-being,
+        so we may see their subtlety,
+      And let there always be being,
+
+【context格式】
+diff -c file1 file2
+     ***************
+     *** from-file-line-numbers ****
+       from-file-line
+       from-file-line...
+     --- to-file-line-numbers ----
+       to-file-line
+       to-file-line...
+
+‘!’ 两个文件不同的行
+‘+’ file2相比file1新增的行
+‘-’ file2相比file1被删掉的行
+
+【normal格式(默认)】
+diff file1 file2
+     1,2d0
+     < The Way that can be told of is not the eternal Way;
+     < The name that can be named is not the eternal name.
+     4c2,3
+     < The Named is the mother of all things.
+     ---
+     > The named is the mother of all things.
+     > 
+     11a11,13
+     > They both may be called deep and profound.
+     > Deeper and more profound,
+     > The door of all subtleties!
+注意：此格式中x,y表示从x行到y行(y不是count)

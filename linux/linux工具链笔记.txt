@@ -1,0 +1,3 @@
+查看.so函数名:
+objdump -tT x.so
+nm -D x.so

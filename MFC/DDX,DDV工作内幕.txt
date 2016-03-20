@@ -1,0 +1,537 @@
+DDX/DDV工作内幕  
+
+2008-08-21 23:02:36|  分类： MFC和VC++ |字号 订阅
+　　DDX(动态数据交换)和DDV(动态数据验证)看起来好象是在对话框中某控件和
+某成员变量之间建立连接,自动实现控件和变量之间的数据转移.但这只是一个幻
+觉.它的实际工作方式是这样的:当你用ClassWizard把某变量和控件连接起来时
+(通过Member Variables选项卡),它在数据映射中创建一个入口.实际上也就是
+在对话框的DoDataExchange函数中添加一个入口函数(DoDataExchange函数是
+Class Wizard产生和维护的函数).当你调用UpdateData(FALSE)时,MFC调用
+DoDataExchange 函数,Class Wizard放于DoDataExchange中的实现代码将把
+来自变量的数据拷贝到对应的控件.如果调用UpdateData(TRUE),MFC反过来把
+数据拷贝回变量(并且可能同时进行数据验证)
+
+　　应该注意到,CDialog经常在OnInitDialog函数中调用UpdateData(FALSE),
+这样当对话框显示时你的成员变量就会神秘的出现在对话框中.同样OnOK函数也
+调用UpdateData,但参数是TRUE.这样模态对话框看起来自己处理自己了.你可以
+编写类似下面的代码:
+
+CNameDlg dlg;
+
+dlg.m_name="New Name";
+
+if ( dlg.DoModal() == IDOK ) MessageBox(dlg.m_name,"Greetings");
+
+来实现模态对话框的自动处理.
+
+　　下面考虑一下使用非模态对话框的情况吧.对话框仍处理OnInitDialog消息,
+因此数据初始传输正常.但是非模态对话框一般不等到按OK按钮来处理它们的数
+据,这就意味这我们必须自己处理数据传输,具体请看『快速DDX』.
+
+
+　　好了,现在来看看DDV动态数据验证.你在使用DDX动态数据交换的同时,也可
+以使用数据验证.典型的,验证可以保证一个字符串的字符数小于给定的数目,或
+者数字在一定范围之内.
+
+　　不过数据验证通常并不能满足我们的期望,这是因为验证只在控件到变量的
+数据传输时才发生.这通常意味着用户在输入了所有数据，单击OK,然后就收到
+一个错误消息.
+
+不过我们可以改进一下，使用『现场数据验证』.
+
+改进DDX/DDV
+快速DDX
+　　有几种情况我们需要使用快速DDX,比如你编写一个电子邮件程序,用户在对
+话框中输入名称和地址,你需要一个按钮使应用程序可以在用户输入完之后得到
+邮件的名称和地址.或者考虑一下模态对话框的"应用"按钮的实现吧.
+
+　　当然要实现上面的任务,我们可以直接调用GetDlgItemText获取编辑框数据,
+但为什么不使用DDX呢?这样至少可以使对话框看起来有点自动化.可以调用
+UpdateData(TRUE)把数据传送到变量,反过来填充地址时可以调用UpdateData(FALSE).
+
+　　要想得到每个控件的状态以确定何时需要进行数据交换,可以重载CDialog类
+的OnCommand函数,因为一般的传统控件都用WM_COMMAND消息来提示状态的改变,
+当然对于使用WM_NOTIFY消息的新型控件可以一样的处理OnNotify函数.下面是
+使用该技术的一个简单例子,当你在对话框中输入数据的同时主窗口中数据也进
+行相应的改变.
+
+程序清单:快速DDX
+// LiveDialog.cpp : implementation file
+//
+
+#include "stdafx.h"
+#include "Custom.h"
+#include "LiveDialog.h"
+
+#ifdef _DEBUG
+#define new DEBUG_NEW
+#undef THIS_FILE
+static char THIS_FILE[] = __FILE__;
+#endif
+
+/////////////////////////////////////////////////////////////////////////////
+// CLiveDialog dialog
+
+
+CLiveDialog::CLiveDialog(CWnd* pParent /*=NULL*/)
+    : CDialog(CLiveDialog::IDD, pParent)
+{
+    //{{AFX_DATA_INIT(CLiveDialog)
+    m_email = _T("");
+    m_name = _T("");
+    //}}AFX_DATA_INIT
+    m_pView=NULL; // 应用程序窗口视的指针
+}
+
+
+void CLiveDialog::DoDataExchange(CDataExchange* pDX)
+{
+    CDialog::DoDataExchange(pDX);
+    //{{AFX_DATA_MAP(CLiveDialog)
+    DDX_Text(pDX, IDC_EMAIL, m_email);
+    DDX_Text(pDX, IDC_NAME, m_name);
+    //}}AFX_DATA_MAP
+}
+
+
+BEGIN_MESSAGE_MAP(CLiveDialog, CDialog)
+    //{{AFX_MSG_MAP(CLiveDialog)
+    //}}AFX_MSG_MAP
+END_MESSAGE_MAP()
+
+/////////////////////////////////////////////////////////////////////////////
+// CLiveDialog message handlers
+
+BOOL CLiveDialog::OnCommand(WPARAM wParam, LPARAM lParam)
+{  
+    BOOL fOk= CDialog::OnCommand(wParam, lParam);
+    // Don't do if this command destroyed us or we are initializing
+    if ( ::IsWindow(m_hWnd) && !in_init )
+    {
+        UpdateData(); // Update on any change
+        ASSERT(m_pView !=NULL );
+        m_pView->GetDocument()->UpdateAllViews(NULL);
+    }
+    return fOk;
+}
+
+BOOL CLiveDialog::OnInitDialog()
+{
+    in_init=TRUE; // 正在初始化
+    CDialog::OnInitDialog();
+    in_init=FALSE; // 初始化结束
+
+    return TRUE;
+}
+
+在窗口视类中用下面的方法调用对话框:
+
+void CLiveView::OnGo()
+{
+    m_dlg.m_pView=this; // 设置m_dlg.m_pView指向当前视
+    m_dlg.DoModal();
+}
+有关该程序还有几个细节要注意:
+
+1.WM_COMMAND消息有破坏对话框,并使之无效的机会,那就是为什么在
+::IsWindow(m_hWnd)返回FALSE时不调用UpdateData的原因.
+
+2.如果你在该段代码的某部分调用UpDateData(FALSE)时,控件可能在那时激活
+命令消息,这样在你递归调用UpDateDate(FALSE)时将产生一个断言.也就是说,
+在你调用UpDateDate之前必须确定你不是正在更新数据,这就是为什么在
+OnInitDialog函数中设置in_ini标志的原因(OnInitDialog中调用了
+UpDateDate(FALSE)),同样在其它任何调用UpDateDate的地方都要这样处理.
+
+
+3.主视必须知道何时需要更新,在这个例子中先保存指向主视的指针,然后在某种
+事情发生时调用主视的文档的UpdateAllView实现视的更新.你可能说我们可以找
+到对话框的父窗口而不需要事先保存主视指针,但这是无法实现的,因为对话框的
+父窗口永远不可能是视(对话框的父窗口必须是顶级窗口).
+
+现场数据验证
+　　实现DDV数据验证的函数其实就是DoDataExchange中以DDV_开头的函数，
+如DDV_MinMaxInt()用来验证整数的范围、DDV_MaxChars用来验证字符串的字
+符个数，调用UpdateData()函数就可以引起这些函数的执行了。
+
+　　要想改进数据验证，比如你想在数据输入框中数据的改变时验证大小是否
+合适而不是等到按OK之后得到一个错误对话框(就象DDV_MaxChars一样在数据
+改变的同时进行字符串个数的验证)，我们可以重载对话框的OnCommand函数以
+截获所有的命令消息，从中筛选（提取wParam的高位字）符合要求的消息(比如
+EN_CHANGE就意味着编辑框中的内容发生了改变)，这里也就是我们验证域中值
+的好时机。
+
+　　还有一个问题是我们并不想验证所有的东西，这有几种方法可以解决，
+比如手工更改数据映射：
+
+
+第一步，添加一个成员变量UINT m_vid,在构造函数中把它置为0（当为0时执行
+常规的延迟数据验证）,在OnCommand中保存当前要验证的控件ID(提取wParam的
+底位字).
+
+BOOL CAboutDlg::OnCommand(WPARAM wParam,LPARAM lParam)
+{
+    if ( HIWORD(wParam) == EN_CHANGE &&
+
+         !m_fIsUpdating ) // 检验标志,是否正在进行数据验证或更新
+
+    {
+        UpdateData();
+        m_vid=0;
+    }
+    return CDialog::OnCommand(wParam,lParam);
+}
+
+
+第二步，修改数据映射。把DoDataExchange中的所有数据映射移出Class Wizard
+的特别注释，并按下面的方法修改代码：
+void CLiveDlg::DoDataExchange(CDataExchange* pDX)
+{
+    CDialog::DoDataExchange(pDX);
+    //{{AFX_DATA_MAP(CAboutDlg)
+    //}}AFX_DATA_MAP
+    m_fIsUpdating=TRUE;    // 是否正在进行数据传递或验证的标志,设置它        
+    if ( !m_vid ||m_vid==IDC_LOG )
+    {
+        DDX_Text(pDX, IDC_LOG, m_log);
+        DDV_MaxChars(pDX, m_log, 10);
+    }
+    if ( !m_vid || m_vid ==IDC_NUM )
+    {
+        DDX_Text(pDX, IDC_NUM, m_num);
+        DDV_MinMaxInt(pDX, m_num, -10, 10);
+    }
+    m_fIsUpdating=FALSE; // 清除标志
+}
+　　这里我们还会碰到前一个例子中的第2个问题，也就是你在验证一个特殊的
+域时,必须确信你没有正在验证，不然你会得到一个断言。当然可以采用和上面
+的例子相似的办法,即在进行数据验证之前先设置m_fIsUpdating=TRUE;(正在进
+行数据传递或验证),验证完之后再设为FALSE,在调用UpdateData之前判断该标志.
+
+　　不过这里会有一个小小的问题,如果数据验证失败,MFC会发出一个异常,以放
+弃DoDataExchange,这样你设置的标志就不灵了.最简单的解决办法是在
+UpdateData调用之后重新把m_fIsUpdating标志设为FALSE(必须是所有的
+UpdateData的调用之后,当然包括MFC内部代码中的调用,如
+CDialog::OnInitdialog中),另一种方法是捕获该异常,然后清除标志,具体请
+看下面的代码:
+
+void CLiveDlg::DoDataExchange(CDataExchange* pDX)
+{
+    CDialog::DoDataExchange(pDX);
+    //{{AFX_DATA_MAP(CAboutDlg)
+    //}}AFX_DATA_MAP
+    m_fIsUpdating=TRUE;    // 是否正在进行数据传递或验证的标志,设置它   
+    try
+    {
+    if ( !m_vid ||m_vid==IDC_LOG )
+    {
+        DDX_Text(pDX, IDC_LOG, m_log);
+        DDV_MaxChars(pDX, m_log, 10);
+    }
+    if ( !m_vid || m_vid ==IDC_NUM )
+    {
+        DDX_Text(pDX, IDC_NUM, m_num);
+        DDV_MinMaxInt(pDX, m_num, -10, 10);
+    }
+    m_fIsUpdating=FALSE; // 清除标志
+    }
+    catch (...) // 捕获异常
+    {
+    m_fIsUpdating=FALSE; // 清除标志
+    throw; // 抛出异常
+    }
+}
+还有一种方法是参考MFC原码写的,在OnCommand中做如下修改:
+
+BOOL CAboutDlg::OnCommand(WPARAM wParam,LPARAM lParam)
+{
+    if ( HIWORD(wParam) == EN_CHANGE && !m_fIsUpdating )
+    // prevent control notifications from being dispatched during UpdateData
+    {
+        m_vid=LOWORD(wParam);
+        _AFX_THREAD_STATE* pThreadState = AfxGetThreadState();
+        HWND hWndOldLockout = pThreadState->m_hLockoutNotifyWindow;
+        if (hWndOldLockout != m_hWnd) // must not recurse
+            UpdateData();
+        m_vid=0;
+    }
+    return CDialog::OnCommand(wParam,lParam);
+}
+
+
+关于数据映射
+
+应该认识到，所谓的数据映射只是一个函数,它展现了许多可能性(也就是可扩
+展性),另外你还可以定制自己的数据验证,比如你想定制一个邮政编码的数据验
+证.具体实现方法请看下面的定制DDX/DDV部分.
+
+还有一点要注意到的,一定要在对应的DDX调用之后立即添加验证代码,否则,当
+验证失败时,你的程序或许不会正确识别哪个域有问题.
+
+定制DDX/DDV
+　　现在你可以尝试编写自己的数据交换和数据验证过程了.你要知道交换和
+验证函数只是一些知道如何处理CDataExchange对象的全局函数而已,没有什
+么特殊的.
+
+　　下面来看看具体做法:
+
+　　对于数据交换,需要编写一个带有参数CDataExchange指针、一个控件ID和对
+某变量引用的全局函数，尽管可以不在函数前面添加DDX_前缀,但是为了可以和
+Class Wizard集成,最好忍住你的这种念头(后面你会看到为什么了).
+
+　　在交换函数中，可以检查CDataExchange指针,以了解你所须的细节.下面就
+来看看CDataExchange类的成员
+
+成员
+描述
+
+m_bSaveAndValidate
+对应于你提供给UpdateData的参数,当为TRUE时数据从控件传递到变量
+
+m_pDlgWnd
+控制窗口或对话框的句柄
+
+PrepareCtrl(int nIDC)
+调用该函数,以标识当前控件(如不是编辑框)
+
+PrepareEditCtrl(int nIDC)
+调用该函数,以标识当前控件(如是编辑框)
+
+Fail()
+产生一个对控件的验证失败(你可以在DDX或者DDV中调用该函数),抛出一个异
+常,破坏DoDataExchange函数的执行
+
+
+  
+    一般的,编写交换函数,,你首先要检查m_bSaveAndValidate的值以确定数据
+的传递方向,如果传递失败,你有必要调用PrepareEditCtrl(适于编辑控件)或者
+PrepareCtrl(适于所有控件),在做此调用之后,任何对Fail的调用将导致把焦
+点交回给该控件,即使其它过程(比如一起的验证过程)发布同样的失败,也是这样
+编写一个验证函数,跟编写一个交换函数差不多,差别只是参数的不同.函数
+以DDV_为前缀,参数可以接受一个CDataExchange指针、合适类型的一个只值、
+一个或两个参数.
+
+　　它的工作很简单,如果m_bSaveAndValidate为TRUE时,一定要保证值是合法
+的(通常认为从程序传递到控件的值是正确的).如果数据正常,则从该函数返回,
+如果数据不正常，则调用Fail函数.前一个数据交换函数已经标识了当前操作的
+是哪个控件(这也就是为什么必须要在对应的DDX调用之后立即添加DDV的验证代
+码的原因了).
+
+　　下面的例子演示了如何定制自己的数据验证:
+
+程序清单:使用定制的DDX/DDV
+// validView.cpp : implementation of the CValidView class
+//
+
+#include "stdafx.h"
+#include "valid.h"
+
+typedef float Currency; // used for DDV
+
+#include "validDoc.h"
+#include "validView.h"
+#include "customdd.h"
+
+#ifdef _DEBUG
+#define new DEBUG_NEW
+#undef THIS_FILE
+static char THIS_FILE[] = __FILE__;
+#endif
+
+
+
+
+/////////////////////////////////////////////////////////////////////////////
+// CValidView
+
+IMPLEMENT_DYNCREATE(CValidView, CFormView)
+
+// Class Wizard won't put this here because it thinks
+// Dialog boxes handle OnOK. They do, but this is a
+// form view, not a dialog box
+BEGIN_MESSAGE_MAP(CValidView, CFormView)
+//{{AFX_MSG_MAP(CValidView)
+ON_COMMAND(IDOK,OnOK)
+//}}AFX_MSG_MAP
+END_MESSAGE_MAP()
+
+/////////////////////////////////////////////////////////////////////////////
+// CValidView construction/destruction
+
+CValidView::CValidView()
+: CFormView(CValidView::IDD)
+{
+validating=FALSE;
+vid=0;
+//{{AFX_DATA_INIT(CValidView)
+m_age = 18;
+m_name = _T("");
+    m_wager = 1.0;
+    m_btnenable = TRUE;
+    //}}AFX_DATA_INIT
+// TODO: add construction code here
+
+}
+
+CValidView::~CValidView()
+{
+}
+
+void CValidView::DoDataExchange(CDataExchange* pDX)
+{
+CFormView::DoDataExchange(pDX);
+//{{AFX_DATA_MAP(CValidView)
+DDX_Text(pDX, IDC_AGE, m_age);
+DDV_MinMaxInt(pDX, m_age, 18, 150);
+DDX_Text(pDX, IDC_NAME, m_name);
+DDV_MaxChars(pDX, m_name, 64);
+    DDX_Text(pDX, IDC_WAGER, m_wager);
+    DDV_MinMaxCurrency(pDX, m_wager, 1.f, 100.f);
+    DDX_EnableWindow(pDX, IDOK, m_btnenable);
+    //}}AFX_DATA_MAP
+}
+
+BOOL CValidView::PreCreateWindow(CREATESTRUCT& cs)
+{
+// TODO: Modify the Window class or styles here by modifying
+// the CREATESTRUCT cs
+
+return CFormView::PreCreateWindow(cs);
+}
+
+/////////////////////////////////////////////////////////////////////////////
+// CValidView diagnostics
+
+#ifdef _DEBUG
+void CValidView::AssertValid() const
+{
+CFormView::AssertValid();
+}
+
+void CValidView::Dump(CDumpContext& dc) const
+{
+CFormView::Dump(dc);
+}
+
+CValidDoc* CValidView::GetDocument() // non-debug version is inline
+{
+ASSERT(m_pDocument->IsKindOf(RUNTIME_CLASS(CValidDoc)));
+return (CValidDoc*)m_pDocument;
+}
+#endif //_DEBUG
+
+/////////////////////////////////////////////////////////////////////////////
+// CValidView message handlers
+
+void CValidView::OnOK()
+{
+if (UpdateData(TRUE))
+    {
+MessageBox("Wager placed");
+    m_btnenable=FALSE;
+    UpdateData(FALSE);
+    }
+}
+
+
+程序清单:定制的DDX/DDV过程
+
+#include <stdafx.h>
+#include "customdd.h"
+
+// Custom Exchange
+void DDX_EnableWindow(CDataExchange *pDX, int id, BOOL &flag)
+    {
+    CWnd *ctl=pDX->m_pDlgWnd->GetDlgItem(id);
+    if (pDX->m_bSaveAndValidate)
+        flag=ctl->IsWindowEnabled();
+    else
+        ctl->EnableWindow(flag);
+    }
+
+// Custom validator
+
+void DDV_MinMaxCurrency(CDataExchange *pDX, float val, float min, float max)
+    {
+    CWnd *editctl=CWnd::FromHandle(pDX->m_hWndLastControl);
+    CString s;
+    int n;
+    if (pDX->m_bSaveAndValidate)
+        {
+// Using math to decide if anything is left over is bad because of rounding
+// errors, so use a string method instead
+        editctl->GetWindowText(s);
+        n=s.Find('.');
+        if (n!=-1 && n+3<s.GetLength())
+            {
+            AfxMessageBox("Please enter the data to the nearest penny!");
+            pDX->Fail();
+            }
+        DDV_MinMaxFloat(pDX,val,min,max); // let the existing one do the job
+        }
+    }
+
+
+与Class Wizard集成
+
+　　如果你只想把某定制过程应用于一个项目的话,可以把它添加到该项目的
+CLW文件.你也可以在包含mfcclwz.dll文件的BIN目录(我的是
+...\Microsoft Visual Studio\Common\MSDev98\Bin)下创建一个DDX.CLW文件,
+然后你的DDX过程就可以应用到所有项目了.
+
+　　下面来看一看怎样写CLW文件:
+
+首先添加一个名为[ExtraDDX]的区段,看起来象INI文件的区段,但是这里的名
+称是区分大小写的.
+
+[ExtraDDX]
+
+ExtraDDXCount=2
+
+ExtraDDX1=E;;Value;Currency;0.0;Text;Floating Point Currency;MinMaxCurrency;Mi&nimum;f;Ma&ximum;f
+
+ExtraDDX2=bBECcRLIMNn;;Enable State;BOOL;TRUE;EnableWindow;Window Enabled Status
+
+这些代码是什么意思呢？
+
+第二行
+
+ExtraDDXCount=x
+
+的x表示项目的数目(这里是2),然后接下来的一行以ExtraDDX1=开头,再下来是
+ExtraDDX2=、ExtraDDX3=等等。等号右边的代码被分成7个、10个或者12个域，
+具体倚赖于你所想实现的目标，每个域以分号分隔，下面的表格列出了这些域的意思：
+
+域
+描述
+
+1
+DDX应用的空间类型(比如E=编辑框)
+
+2
+未使用
+
+3
+属性类型(经常是值,对应着Class Wizard的第一个组合框)
+
+4
+变量的数据类型
+
+5
+初始值
+
+6
+没有DDV_前缀的DDV过程名
+
+7
+注释
+
+8
+没有DDV_前缀的DDV过程名
+
+9
+第一个DDV参数的名称(可选)
+
+10
+第一个DDV参数的类型(比如,f=float;可选)
+
+11

@@ -1,0 +1,89 @@
+target ... : prerequisites ... ; [command]
+	[Tab]command
+
+target：
+    1、也就是一个目标文件，可以是Object File，也可以是执行文件。还可以是一个标签（Label）
+    2、第一条规则中的第一个目标将被确立为最终的目标
+    3、第一个target以外的target，如果没有被第一个prerequisites直接或间接引用，不会执行。这时可以make target显式执行
+    4、一个规则中有多个目标时，命令中可以用自动化变量$@遍历各个目标
+prerequisites:
+    1、要生成那个target所需要的文件或是target。
+    2、命令中可以用自动化变量$<遍历各个依赖
+command:
+    1、command和prerequisites不在一行，前面必须要[Tab]。在一行可用分号分隔
+    2、前面加一个-(减号)，表示有错误也不停下来。
+        或者目标中加入.IGNORE，作用于该规则中的所有命令
+        或者使用make的参数-i/--ignore-errors，作用于所有命令
+    3、必须连续执行的命令，用分号隔开，不能分两行写(每行命令分配一个终端？)
+
+伪目标：
+    伪目标是一个标签，只能显示指定make 目标才能执行
+    .PHONY : clean    “.PHONY”向make说明，不管有没有名叫clean的文件，clean都是一个伪目标
+    伪目标执行时，不论依赖项如何，总是会成立
+
+隐含规则：
+    只要make看到一个[.o]文件，它就会自动的把[.c]文件加在依赖关系中，自动生成命令"$(CC) -c $(CPPFLAGS) $(CFLAGS)"，相当于
+    %.o : %.c
+        $(CC) -c $(CPPFLAGS) $(CFLAGS) $< -o $@
+
+include 文件名    包含其他makefile
+    环境变量MAKEFILES中的值会被make自动include
+	
+VPATH    文件搜索路径
+    VPATH变量中的值(以:分隔)用来寻找依赖文件和目标文件
+	vpath关键字   vpath <patter> <directories>     vpath %.h ../headers  用%匹配任意字符
+
+GNU的make工作时的执行步骤入下：（想来其它的make也是类似）
+1、读入所有的Makefile。
+2、读入被include的其它Makefile。
+3、初始化文件中的变量。
+4、推导隐晦规则，并分析所有规则。
+5、为所有的目标文件创建依赖关系链。
+6、根据依赖关系，决定哪些目标要重新生成。
+7、执行生成命令。
+1-5步为第一个阶段，6-7为第二个阶段。第一个阶段中，如果定义的变量被使用了，那么，make会把其展开在使用的位置。但make并不会完全马上展开，make使用的是拖延战术，如果变量出现在依赖关系的规则中，那么仅当这条依赖被决定要使用了，变量才会在其内部展开。
+
+静态模式：
+    <targets ...> : <target-pattern> : <prereq-patterns...>
+        <commands>
+    target-pattern中，用%通配符对targets进行过滤，得到filtered-targets
+    prereq-pattern中，用%通配符可以产生和filtered-targets一一对应的项
+    例：foo.o bar.o : %.o : %.c ; $(CC) -c $(CFLAGS) $< -o $@
+    产生    foo.o : foo.c ; $(CC) -c $(CFLAGS) foo.c -o foo.o
+            bar.o : bar.c ; $(CC) -c $(CFLAGS) bar.c -o bar.o
+
+自动生成依赖性：
+    C/C++编译器的-M或-MM(忽略标准库头文件)，对.c/.cpp文件生成一个依赖关系，即main.o : main.c afx.h x1.h x2.h 形式
+
+调试makefile的方法：
+    1、make的参数-n或--just-print，命令只显示不执行，可以观察执行情况
+
+嵌套执行make：
+    export <variable ...>    传递变量到下级makefile中
+    unexport <variable ...>    阻止变量传递到下级makefile
+    两个变量：SHELL和MAKEFLAGS不管是否被export，总是会传递到下层makefile。MAKEFLAGS是make调用时的参数
+
+定义命令包：
+    define run-yacc
+    yacc $(firstword $^)
+    mv y.tab.c $@
+    endef
+    以后可以用$(run-yacc)调用define到endef中间的命令
+
+使用变量：
+    变量用宏的方式展开到引用位置(字符串替换)
+    调用变量：    $(var),${var},$($(x))把x的值当作变量名
+    变量赋值：    =
+                 :=    这样在赋值时，不解析在被赋值变量后面定义的变量。可以防止变量展开时一些奇怪的问题(递归等等)
+                 +=    追加变量值
+    override指示符：    写在变量赋值前面，覆盖make命令行参数设置的变量
+    
+目标变量：
+    <target ...> : <var=value>
+    var是target的局部变量，var的作用域为target所在的规则，以及由该规则下溯引发的所有规则
+
+模式变量 ：
+    <pattern ...> : <var=value>
+    把var定义在符合pattern的所有目标上
+    pattern一般含有通配符%
+    例：    %.o : CFLAGS = -O

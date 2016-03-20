@@ -1,0 +1,39 @@
+==========Books================================
+12月 OPENGL+MFC项目
+
+复习线代,重做一些题
+复习高数，每周设定一个目标
+
+背单词，很重要
+===============================================
+
+=========DONE==================================
+//1 Win32			1 Month
+//1 C++ Primer			1 Monty
+//1 线性代数			1 Month
+//1 解析几何			2 Week
+//1 STL allocator		1 Day
+//1 STL Trait			1 Day
+//3 C++正则			1 Day
+//4 NMAKE			1 Day
+===============================================
+
+==========Practice=============================
+DLL Programming
+C++ Console, 分dll和注入版本
+3DMAX	做模型
+skinned mesh
+cs模型读取
+war3模型读取
+bsp读取，显示
+HL2 SDK
+bresenham画线
+===============================================
+
+yacc,lex 图论
+UML VP的官方网站是http://www.visual-paradigm.com，MagicDraw的官方网站是http://www.magicdraw.com。
+
+
+===============================================
+war3 action
+cskillorc, bsp & player in cs, enemies use war3 orc models

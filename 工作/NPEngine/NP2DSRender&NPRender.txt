@@ -1,0 +1,23 @@
+数据逻辑层级划分：							功能划分：
+NP2DSRenderStep::CreateMesh()
+	NP2DSRenderMesh							shader
+		NPMesh								VertexBuffer, IndexBuffer
+			NP2MBufferRef					semantic, submesh
+				NPMBuffer					region, upload/download, access, usage
+					NPElementSet			stride, elemVec
+						NPElement			format, offset
+
+
+						
+======================================================================
+
+NPTexture									普通贴图,可以Bind
+	NPSourceTexture							图片加载的贴图
+	NPCommonTexture							Upload/Dnload，可以改写
+		NPRenderTexture						Bind/Create FrameBuffer
+			NPRenderTarget					额外的DepthStencilBuffer
+
+======================================================================
+NPTexturePalette							管理NPTexture
+NPTexturePaletteEx							管理NPCommonTexture
+NPTextureCache								增加单件模式

@@ -1,0 +1,18 @@
+NPRender::Init()
+	NPImageLoader::Init()
+	NPSemantic::Init()
+	NPCamera::Init()
+	NPProperty::Init()	渲染状态
+
+NP2DSLib::Init()
+	NP2DSRenderUtil::Init()	绘图函数，支持输出到NP2DSRenderPool或者输出到NP2DSRenderStep
+		NP2DSRenderPool 可以缓存NP2DSRenderUtil的计算结果
+	NP2DSRenderStep::Init()	批次管理
+	NP2DSXXXFileMgr::Init()
+	NP2DSTextureCache::Init()
+	NP2DSSceneFileMgr::Init()
+
+NPFTDraw::Init()
+NPGUILib::Init()
+NPAudio::Init()
+NPInput::Init()

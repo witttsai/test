@@ -1,0 +1,3 @@
+autotools	大量linux系统使用，学习曲线陡峭，生成makefile
+cmake		生成各个平台对应的项目文件
+scons		用python写任务

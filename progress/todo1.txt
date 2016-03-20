@@ -1,0 +1,9 @@
+笔记 
+	jni 
+	gdb
+	ndk
+	androidsdk 
+
+ams解码预览，动画，帧
+模块化dialog
+迁移至extreme toolkit?可能还不如新开一个

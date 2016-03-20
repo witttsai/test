@@ -1,0 +1,34 @@
+NPRenderObject								parent, 矩阵变换, visible, 渲染状态, shader
+
+NPNode										child管理
+
+NP2DSTransRef								角度变换，用于Module,Frame,Actor
+
+NP2DSActorRef\
+NP2DSFrameRef->								动画元素实例
+NP2DSImageRef/
+
+
+
+
+======================================================================
+NP2DSData									获得对应的NP2DSBaseFile指针
+NP2DSActor\									包含NP2DSLayer
+NP2DSFrame->								包含NP2DSImageRef和NP2DSCollider
+NP2DSImage/									包含NP2DSTextureCache中的贴图id,alpha,SrcRect
+NP2DSLayer/									包含NP2DSFrameRef
+
+
+======================================================================
+NP2DSBaseFile								NeedSave
+NP2DSResFile								可以包含多个NP2DSData
+NP2DSActorFile\
+NP2DSFrameFile-								包含各自对应的NP2DSData
+NP2DSImageFile/
+
+
+======================================================================
+NP2DSBaseFileMgr							生成文件
+NP2DSActorFileMgr\
+NP2DSFrameFileMgr-							索引文件
+NP2DSImageFileMgr/

@@ -1,0 +1,59 @@
+5、WM_COMMAND和WM_NOTIFY
+
+
+控件通知消息，是指这样一种消息，一个窗口内的控件发生了一些事情，需要通知父窗口。当用户与控件窗口交互时，控件通知消息就会从控件窗口发送到它的主窗口，这种消息一般不是为了处理用户命令，而是为了让主窗口能够改变控件。
+
+
+WM_COMMAND和WM_NOTIFY都是控件通知消息。
+
+
+在最初的Windows 3.x中，还没有WM_NOTIFY，只存在WM_COMMAND消息，wParam参数中包含一个通知码和控件ID，lParam中包含控件句柄。这样一来，wParam和lParam都被填充了，没有额外的空间来传递一些其它信息，如鼠标按下的位置和时间。
+
+
+为了解决这个问题，Windows 3.x就提出了一个解决策略，那就是给一些消息添加一些附加消息，比如控件自画用到的DRAWITEMSTRUCT等，这样，不同的消息附加的内容不同，结果是非常混乱。
+
+
+在Win32中，微软又提出了一个更好的解决方案，引进了NMHDR结构。这个结构的引进把消息统一起来，利用它可以传递各种复杂的消息。
+
+
+NMHDR结构内容如下：
+
+
+NMHDR
+
+
+{
+
+
+HWND hWndFrom;//相当于原WM_COMMAND消息的lParam
+
+
+UINT idFrom; //相当于原WM_COMMAND消息的wParam(LOWORD)
+
+
+UINT code; //相当于原WM_COMMAND消息的wParam(HIWORD)通知码
+
+
+}
+
+
+使用这个结构，WM_NOTIFY还可以附带更多的信息，您可以定义一个更大的结构，这个结构的第一个元素就是NMHDR结构，在该元素的后面您还可以放置其它附加信息。由于在这个大结构中，第一个成员是NMHDR，这样一来，我们就可以利用指向NMHDR的指针来指向这个结构，不论后面有没有其它内容。
+
+
+可见，WM_NOTIFY和WM_COMMAND相比，是一种更灵活的消息格式，lParam中放的是一个称为NMHDR结构的指针。在wParam中放的则是控件的ID。最初Windows 3.x就有的控件，如Edit，Combo，List，Button等，发送的控件通知消息的格式是WM_COMMAND；而后期的Win32通用控件，如List View，Image List，IP Address，Tree View，Toolbar等，发送的都是WM_NOTIFY控件通知消息。
+
+
+另外，当用户选择菜单的一个命令项，也会发送WM_COMMAND消息。
+
+
+当用户选择菜单的一个命令项或控件给父窗口发送通知消息，都可以使用WM_COMMAND消息。为了区分这两种情况，规定它们有以下区别，如表2：
+
+
+消息来源
+
+
+	wParam (high word)	wParam (low word)	lParam
+--------------------------------------------------------------------------
+菜单	0			菜单标识符 (IDM_*)	0
+加速器	1			加速器标识符 (IDM_*)	0
+控件	控件定义的通知码	控件ID			控件窗口的句柄

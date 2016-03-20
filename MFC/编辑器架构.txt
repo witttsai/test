@@ -1,0 +1,11 @@
+﻿编辑器:
+界面plugin的写法:     看cryengine，clara，foobar和notepad++的接口
+  1: 一个plugin对应一组数据，以struct/类表示。控件从core获得当前操作/选中的object，然后由object的通用接口获得感兴趣的数据(getRenderData()/getAIData())。
+  2: dll加载后获得位置信息，加入到对应的panel位置。
+  3: 消息映射:大部分消息内部解决，仅通过core单点与外部联系。可发送通知给父窗口实现转发。(正确的做法是各个操作生成cmd发送给core处理)
+  4: ddx/ddv: 数据从控件to/from数据(struct或类)。plugin内部保存core引用，接收或触发ddx。
+  5: undo/redo: 两种做法 1、拷贝所有数据 2、封装成cmd
+  6: CDialog做子窗口
+
+问题：
+  MFC是否可以达到自由注册消息监听器？(不能)

@@ -1,0 +1,19 @@
+第八章看完
+实践Scribble step1
+
+Doc: Serialize(), OnNewDocument()
+View: OnDraw(), GetDocument()
+
+
+
+记账
+keytest
+遗忘曲线复习计划
+四元数，矩阵，旋转visualize
+
+
+分割，拖拉大小
+左边tile表
+下面 under construction
+右边listcontrol
+中间opengl

@@ -1,0 +1,12 @@
+ON_NOTIFY : Comes from a child control to the parent. This macro goes in the parent's message map.
+
+ON_NOTIFY_REFLECT: Comes from a child control, but is "reflected" back to the child (by the parent)so the child can handle its own notification. This macro goes in the child's message map.
+
+ON_NOTIFY_REFLECT_EX: Same as previous, except that the handler function returns a BOOL, indicating whether or not the message should be routed on to parent classes for possible handlers. Note   that   the   reflected   message   is   handled   before   the   notification   message. 
+
+我的理解就是一般情况下，ON_NOTIFY是子控件把消息发送给父窗口，由父窗口来处理消息，消息处理函数在父控件的类里面。
+
+如果用了ON_NOTIFY_REFLECT反射，就是说这个消息由子窗口自己来处理
+
+最后再附赠你一个ON_NOTIFY_REFLECT_EX，你仔细观察的话的话会发现很多消息反射形如ON_COMMAND, ON_NOTIFY, ON_RANGE等等，它们都有个扩展形式ON_COMMAND_EX, ON_NOTIFY_EX, ON_RANGE_EX, 微软这么干有什么意图呢，就是这样的：如果你的ON_NOTIFY_REFLECT_EX(消息， 消息处理函数)中的第二个参数也就是消息处理函数的返回值是bool类型的，且返回值是TRUE，那么就是说这个消息会既发给子控件又发给父窗口，即又在子控件里处理该消息，又在父窗口里处理该消息，如果返回值是FLASE的话或者是其他类型的返回值的话，就只发给子控件了，这个时侯ON_NOTIFY_REFLECT_EX就相当于ON_NOTIFY_REFLECT。
+ON_COMMAND_EX等同理。

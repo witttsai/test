@@ -1,0 +1,17 @@
+DDX: 数据从类变量自动同步到控件，用CWnd::UpdateData(BOOL)触发。BOOL为true时从控件导出，BOOL为false时向控件导入。
+
+OnPaint(): 主要是做只输出到荧幕而不到打印机的工作。
+CDocument::UpdateAllViews 从doc 同步数据到所有view，呼叫CView::OnUpdate()
+
+DDX_Control() ?
+
+zorder: SetWindowPos(hwnd, hwndInsertAfter, x, y, cx, cy, nflags)
+
+DDX_Control(CDataExchange* pDX, int nIDC, CWnd& rControl): rControl.SubClass(nIDC), nIDC的WndProc会被替换，把对话框中的控件和rControl关联起来
+1、可通过rControl向控件中添加数据
+2、DDX_Control发生之前，rControl不可调用Create()
+
+在OnMouseMove()中绘图：
+	CDC *pDC = GetDC();
+	OnPrepareDC(pDC);
+	即可绘图

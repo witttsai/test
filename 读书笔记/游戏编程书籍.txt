@@ -1,0 +1,49 @@
+forthcoming March 2004: Essential Mathematics for Games and Interactive Applications, Jim Van Verth and Lars Bishop, ISBN 1-55860-863-X
+forthcoming April 2004: GPU Gems, edited by Randima Fernando.
+forthcoming October 2003: Collision Detection, by Gino van den Bergen (table of contents)
+forthcoming December 2003: Game Physics, by Dave Eberly (companion web site)
+forthcoming October 2003: ShaderX2: Introductions and Tutorials with DirectX 9, edited by Wolfgang F. Engel (table of contents)
+forthcoming October 2003: ShaderX2: Shader Programming Tips and Tricks with DirectX 9, edited by Wolfgang F. Engel (table of contents) note that this is a separate volume from the previous book
+forthcoming: Essential Mathematics for Games and Interactive Applications, by Jim Van Verth and Lars Bishop, Sept. 2003
+Graphics Programming Methods, edited by Jeff Lander, July 2003
+Real-Time 3D Terrain Engines Using C++ and DirectX 9 , by Greg Snook, June 2003
+3D Computer Graphics: A Mathematical Introduction with OpenGL, by Samuel R. Buss, June 2003 (sample code, etc.)
+Advanced 3D Game Programming with DirectX 9.0, by Peter Walsh and Adrian Perez, April 2003.
+The Cg Tutorial: The Definitive Guide to Programmable Real-Time Graphics, by Randima Fernando and Mark J. Kilgard, February 2003 (Sample chapters and more, Gamasutra excerpt)
+Game Programming Tricks of the Trade, by Lorenzo Phillips, Sept. 2002
+Direct3D ShaderX: Vertex and Pixel Shader Tips and Tricks, by Wolfgang F. Engel (Table of Contents and more; Introduction; Samples 1 & 2), 2002
+The OpenGL Extensions Guide, by Eric Lengyel (table of contents and sample, in-depth table of contents)
+3D Games, Volume 2: Animation and Advanced Real-Time Rendering, by Alan Watt and Fabio Policarpo (their Fly3D SDK is online), 2003
+Game Programming Gems 3, edited by Dante Treglia and Mark DeLoura, 2002 (see the series web site for upcoming volumes)
+Geometric Tools for Computer Graphics, by Philip Schneider and David Eberly, Sept. 2002 (companion web site)
+Focus On 3D Terrain Programming, by Trent Polack, Dec. 2002 (comes with CD; Publishers description)
+Vector Game Math Processors, by James C. Leiterman, Dec. 2002.
+3D Math Primer for Graphics and Game Development, by Fletcher Dunn and Ian Parberry, Dec. 2002. (more information at their site)
+Fundamentals of Computer Graphics, by Peter Shirley, July 2002
+Real-Time Shading, by Marc Olano et al., July 2002
+Level of Detail for 3D Graphics, by David Luebke et al., July 2002 (companion web site)
+Advanced 3D Game Development with OpenGL, by David Byttow and Ryan Parker, 2002
+Real-Time Shader Programming, by Ron Fosner, Dec. 2002
+Jim Blinns Corner: Notation, Notation, Notation, by Jim Blinn, July 2002
+Software Optimization Cookbook, by Richard Gerber, March 2002
+Real Time Rendering Tricks and Techniques in DirectX, by Kelly Dempski, 2002
+Texturing & Modeling: A Procedural Approach, 3rd Edition, by David Ebert et al., 2002 (companion web site)
+Special Effects Game Programming with DirectX 8.0, by Mason McCuskey, 2002
+Non-Photorealisting Computer Graphics, by Thomas Strothotte and Stefan Schlechtweg, June 2002 (companion web site)
+Mathematics for 3D Game Programming & Computer Graphics, by Eric Lengyel, 2001
+Game Programming Gems 2, edited by Mark DeLoura (Table of Contents and introduction), 2001
+OpenGL Game Programming, by Kevin Hawkins and Dave Astle (source code), 2001
+Subdivision Methods for Geometric Design: A Constructive Approach, by Joe Warren and Henrik Weimer, 2001 (companion web site and publishers web site)
+Non-Photorealistic Rendering, by Gooch and Gooch, 2001
+Computer Animation: Algorithms and Techniques, by Richard Parent, 2001
+Practical Algorithms for 3d Computer Graphics, by R. Stuart Ferguson, 2001
+Game Programming Gems, edited by Mark DeLoura (Table of Contents and code updates), 2000
+Game Engine Design: A Practical Approach to Real-Time Computer Graphics, by Dave Eberly (his code is online), 2000
+3D Games, Volume 1: Real-time Rendering and Software Technology, by Alan Watt and Fabio Policarpo (their Fly3D SDK is online), 2000
+3D Graphics Programming: Games and Beyond, by Sergei Savchenko, 2000
+Computational Geometry: Algorithms and Applications, by deBerg, Van Kreveld, Overmars, and Schwarzkopf, 2000
+Computer Graphics Using OpenGL by F.S. Hill, Jr., 2000 (Table of Contents and sample chapter)
+3D Game Engine Design, by David Eberly, Jan. 2001 (companion web site)
+Essential Mathematics for Computer Graphics Fast, by John Vince, Oct. 2001
+Computer Graphics Through Key Mathematics, by Huw Jones, May 2001
+Mathematics for Computer Graphics Applications, by Michael Mortenson, 1999

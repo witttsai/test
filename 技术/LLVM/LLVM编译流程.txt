@@ -1,0 +1,5 @@
+标准LLVM流程
+
+           /LLVM-gcc                                     (            /LLVM IR 内存中形式    \)                                                               / Assembly
+C/C++ ===> -LLVM-dragonegg ===> LLVM code representation (三种表现形式-LLVM Assembly 汇编码  -) ===> LLVM target-independent code generator ===> machine code 
+           \LLVM-Clang                                   (            \LLVM bitcode 二进制码 /)                                                               \ binary machine code for JIT

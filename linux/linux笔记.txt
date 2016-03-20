@@ -1,0 +1,76 @@
+---------------------------------------------------------
+【文件位置】
+FHS Filesystem Hierarchy Standard
+/etc/init.d/    所有服务的默认启动脚本
+/etc/fstab    文件系统载入点
+/etc/rc.local    开机启动的脚本
+/etc/environment -> /etc/profile -> (~/.bash_profile | ~/.bash_login | ~/.profile) -> ~/.bashrc -> /etc/bashrc -> ~/.bash_logout
+.bash_profile    登录时执行(ubuntu 12.04只有~/.profile)
+.bashrc    打开shell时执行
+---------------------------------------------------------
+
+---------------------------------------------------------
+【命令】
+ll    ls -l的别名
+alias/unalias    显示别名
+type 命令    显示该命令是命令/别名/shell内置
+basename/dirname 解析路径中的文件名/目录名
+chattr/lsattr 修改/查看文件隐藏属性
+	a 只能以append打开
+	i 不能被删除，改名，设置连接，写入
+whereis/locate/find 查找
+	whereis/locate 文件名  在数据库中查找文件
+	find /etc -name '*pass*'  在/etc中查找名字带pass的文件
+df -h /etc    显示/etc剩余空间
+du -h    显示当前目录占用空间
+ln src dest    硬连接，只有分区表数据，不能连接目录，不能跨文件系统
+ln -s src dest    符号连接，同windows快捷方式
+fdisk -l /dev/sda    显示分区情况
+>/>>    重定向输出，>>为append
+jobs    显示后台作业编号
+bg    进程调入后台
+fg    进程调入前台
+ctrl+z    进程挂起(进入后台)，进入后台后的进程为stoped状态，需要用bg继续运行
+clear reset 清屏
+tar -[z]cvf 档名 要压缩的文件
+tar -[z]xvf 档名 -C 解压目录
+file    检测文件类型
+sudo bash    使用root用户
+kill -stop pid    暂停进程
+kill -cont pid    进程继续
+apt-get install xxx -V    显示来源
+---------------------------------------------------------
+
+---------------------------------------------------------
+【变量】
+$var/${var}    取值,${var}中可放各种符号，特殊操作
+var=value    设置
+unset var    清除
+export var    已定义的变量var能在子程序中使用
+单引号中的内容，不会被解析，里面的变量名会被当作文本
+双引号则会解析
+·(1左边的点)    ·命令· 点号中间的命令会被先执行，结果被用作输入信息
+
+declare [-aixr] var
+    -a 将var定义为数组 设置: var[下标]=内容 读取: ${var[下标]}
+    -i 将var定义为整数(可计算)
+    -x 将var定义为环境变量
+    -r 将var定义为只读
+---------------------------------------------------------
+
+---------------------------------------------------------
+【svn】
+编辑批量上传的文件
+svn status | grep '^M' | sed -e 's/^M\s*//' > commit.lst
+svn commit --targets commit.lst
+---------------------------------------------------------
+
+---------------------------------------------------------
+【特殊符号】
+;    连续命令
+~    Home目录
+&    后台工作
+()    在中间为子shell的起始与结束
+[]    在中间为字符的组合
+{}    在中间为命令区块的组合
+---------------------------------------------------------

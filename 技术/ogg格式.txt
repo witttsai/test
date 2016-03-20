@@ -1,0 +1,38 @@
+///////////////////////////////////////////////////////
+///		OGG FRAMING
+///////////////////////////////////////////////////////
+
+一个物理stream可以由多个逻辑stream组成
+逻辑stream由一系列的page组成
+一段被包装的数据称为packet,packet可以跨个多个page
+packet的数据逻辑上被分割成任意个不超过255字节长的segment
+一个packet由长度<255的segment结尾，表明此packet没有跨越page。如果最后一个segment长度是255，需要增加一个长度为0的segment
+各个segment的长度，称为“lacing values”，储存在page header的segment table中。segment table前面一个字节存储了segment table的长度。
+lacing value 255表明后面跟着还有一个lacing value; lacing value < 255 表明packet的结束; packet的最后一个lacing value刚好是255的，由lacing value = 0结束
+segment table中最后一个lacing value = 255表明此packet跨到下一个page
+
+page header结构
+0-3		byte: 'OggS'	capture_pattern：用于从stream的任意位置定位page
+4		byte: 0x00		stream_structure_version
+5		byte: 			header_type_flag：0x01 | 0x02 | 0x04
+6-13	byte: 			absolute granule position：加上在此page中完成的packet之后，总共的sample计数。跨越此page的packet不被计算在其中
+14-17	byte: 			stream serial number，标识page所在的logic stream
+18-21	byte:			page sequence no：让我们知道是不是有page丢失了
+22-25	byte:			page CRC checksum
+26		byte:			page_segments：lacing value数目
+27-		byte:			segment_table：lacing values
+
+
+///////////////////////////////////////////////////////
+///		Ogg bitstream overview
+///////////////////////////////////////////////////////
+stream和media的metadata作为数据储存在Ogg数据流里
+从ogg stream的任意一个位置可以capture最近的page
+
+///////////////////////////////////////////////////////
+///		Tremor
+///////////////////////////////////////////////////////
+ov_read()读取的数据是16bit signed host endian PCM数据
+ov_info()获得vorbis_info指针，其中有channels指定声道，rate指定sample rate
+
+

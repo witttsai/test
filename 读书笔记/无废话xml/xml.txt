@@ -1,0 +1,6 @@
+DTD : Document Type Difinition
+XSD : Xml Schema Difinition
+用来校验文档正确性。两个功能一样，新的XSD取代DTD。
+
+XSLT: Extensible Stylesheet Language Transformations
+定义xml转换的规则。从一个xml按规则生成对应的xml。

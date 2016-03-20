@@ -1,0 +1,30 @@
+-----------HTTP---------------
+import socket
+sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+sock.connect(('117.41.224.98',80))
+str='GET /restaurant/android_data_down/assets_v1.0.6.zip HTTP/1.1\r\nHost:dldir1.qq.com\r\nRanges:bytes=2000000-5000000\r\n\r\n'
+#str='GET http://dldir1.qq.com/restaurant/android_data_down/assets_v1.0.6.zip HTTP/1.1\r\nRanges:bytes=2000000-5000000\r\n\r\n'
+sock.send(str)
+data=sock.recv(1024)
+print data
+
+java bsh:
+URL url = new URL("http://dldir1.qq.com/restaurant/android_data_down/assets_v1.0.6.zip");
+HttpURLConnection conn = (HttpURLConnection)url.openConnection();
+
+
+-----------XML----------------
+from xml.etree import ElementTree
+elemTree = ElementTree.parse("AndroidManifest.xml")
+root = elemTree.getroot()
+versionCode = root.attrib["{http://schemas.android.com/apk/res/android}versionCode"]
+packageName = root.get("package")
+application = root.find("application")
+activities = application.findall("activity")
+
+
+-----------ZIP----------------
+import zipfile
+zf = zipfile.ZipFile("xxx.zip", "w", zipfile.ZIP_DEFLATED)
+zf.write("xxx\xxx.xxx", "nameinzip")
+zf.close()

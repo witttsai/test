@@ -1,0 +1,10 @@
+python debug:		pythono -m pdb xxx.py
+类似printf：		print "%d %x %s" % (255, 255, "hex")
+连接字符串：		"\n".join(iterable)
+自省：				[method for method in dir(obj) if callable(getattr(obj, method))]
+bool ? A:B			bool and A or B, A必须为True
+看函数所在module：	print(file.__class__.__module__)
+看对象的类：		obj.__class__
+全局变量：			在函数中被写访问时，需要先用global声明。以'_'开头的变量不会被from module import *导入
+_命名：				以两个以上下划线开头，并没有以两个以上下划线结尾，视为私有成员。__XXX会被转换为_类名__XXX
+NULL关键字:			None

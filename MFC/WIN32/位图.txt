@@ -1,0 +1,17 @@
+-----DeviceContext (DC):-----
+通常，设备内容指的是特殊的图形输出设备（例如视讯显示器或者打印机）及其设备驱动程序。内存设备内容只位于内存中，它不是真正的图形输出设备，但可以说与指定的真正设备「兼容」(主要指显示平面像素格式上兼容)。
+hdcMem = CreateCompatibleDC(hdc);
+建立了一个与hdc所代表设备兼容的内存设备内容，刚建立的内存设备内容只有1位的显示平面。
+hBitmap = CreateCompatibleBitmap(hdcMem, w, h);
+SelectObject(hdcMem, hBitmap);
+建立了一个与hdcMem兼容的位图，并选进hdcMem,成为内存设备内容的显示平面。内存设备内容是您可以选进位图的唯一一种设备内容型态。
+
+-----Blt操作：-----
+BitBlt (hdcDst, xDst, yDst, cx, cy, hdcSrc, xSrc, ySrc, dwROP) ;
+StretchBlt (hdcDst, xDst, yDst, cxDst, cyDst,hdcSrc, xSrc, ySrc, cxSrc, cySrc, dwROP) ;
+把hdcSrc的内容传输到hdcDst，根据dwROP的不同，hdcDst当前的画刷P也会参与光栅操作。
+PatBlt (hdc, x, y, cx, cy, dwROP) ;
+用hdc当前画刷进行填充。
+BOOL TransparentBlt(  HDC hdcDest, int nXOriginDest, int nYOriginDest, int nWidthDest, int hHeightDest, HDC hdcSrc, int nXOriginSrc, int nYOriginSrc, int nWidthSrc, int nHeightSrc, UINT crTransparent);
+BOOL AlphaBlend(  HDC hdcDest, int nXOriginDest, int nYOriginDest, int nWidthDest, int nHeightDest, HDC hdcSrc, int nXOriginSrc, int nYOriginSrc, int nWidthSrc, int nHeightSrc, BLENDFUNCTION blendFunction);
+支持半透明的版本

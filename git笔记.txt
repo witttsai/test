@@ -1,0 +1,48 @@
+git reset HEAD <file>                   取消暂存
+git checkout -- <file>                  取消修改
+
+git remote -v                           查看远程仓库
+git ls-remote <rmt-name>                查看远程分支
+git remote show <rmt-name>              查看某个远程仓库的分支，以及pull和push设置
+git remote add name url                 添加远程仓库
+git remote rename                       远程仓库重命名
+git remote rm                           远程仓库移除
+
+
+git fetch <rmt-name>                    拉取远程仓库的所有分支
+git pull                                抓取自动跟踪的远程分支并合并
+git push <rmt-name> <src_br:dst_br>     推送src分支到远程仓库的remote/dst分支
+git push <rmt-name> --delete <rmt-br>   删除远程分支，数据会保留直至垃圾回收运行
+
+git branch                              列出所有分支，带*号的为当前检出分支(即HEAD所指分支)
+git branch -vv                          列出所有跟踪分支
+git branch --no-merged                  列出包含未合并工作的分支
+git branch <br-name>                    在当前提交对象上创建一个分支指针
+git branch -u <rmt-name>/<rmt-br>       设置本地分支跟踪远程分支
+                                        @{u}:上游快捷方式，引用当前本地分支所跟踪的远程分支
+
+git checkout <br-name>                  切换到分支，HEAD指向新的分支
+git checkout -b [br] [remote]/[br]      创建并跟踪远程分支的同名分支
+                                        没有被提交的修改会和切换的分支产生冲突
+git branch -d <br-name>                 删除分支
+
+git merge <br-name>                     合并br-name到当前分支
+git status                              列出有冲突的文件
+git add <file>                          标记冲突已解决
+
+git rebase <br-name>                    把当前分支的改动应用到br-name
+                                        rebase维持提交历史的整洁，合并结果只包含一个commit
+git rebase <dst-br> <src-br>            把src-br的改动应用到dst-br
+git rebase --onto <dst-br> <src-br-exclude> <src-br-include>
+                                        取src-br-include分支和src-br-exclude分支共同祖先之后的修改，应用到dst-br分支
+
+git log -p -1                           查看log diff
+git diff --staged                       查看已暂存文件的改动
+git diff src_br target_br               比较两个branch的差异
+
+
+origin                                  git clone 产生的默认远程仓库名
+master                                  git clone 自动设置本地master分支跟踪远程仓库的master分支
+                                        git init 默认创建master分支
+HEAD                                    指向当前所在的本地分支
+

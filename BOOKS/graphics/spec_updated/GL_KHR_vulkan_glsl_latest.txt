@@ -33,8 +33,8 @@ Status
 
 Version
 
-    Last Modified Date: 7-Mar-2016
-    Revision: 28
+    Last Modified Date: 21-May-2017
+    Revision: 40
 
 Number
 
@@ -62,12 +62,12 @@ Overview
     The following features are removed:
         * default uniforms (uniform variables not inside a uniform block),
           except for opaque types
-        * atomic-counter bindings: atomic counters form a one-dimensional space
+        * atomic-counters (those based on atomic_uint)
         * subroutines
         * shared and packed block layouts
         * the already deprecated texturing functions (e.g., texture2D())
         * compatibility-mode-only features
-        * DepthRangeParameters
+        * gl_DepthRangeParameters and gl_NumSamples
         * gl_VertexID and gl_InstanceID
 
     The following features are added:
@@ -77,8 +77,13 @@ Overview
         * specialization constants
         * gl_VertexIndex and gl_InstanceIndex
         * subpass inputs
+        * 'offset' and 'align' layout qualifiers for uniform/buffer blocks for
+          versions that did not support them
 
     The following features are changed:
+        * precision qualifiers (mediump and lowp) will be respected for all
+          versions, not dropped for desktop versions (default precision for
+          desktop versions is highp for all types)
         * gl_FragColor will no longer indicate an implicit broadcast
         * arrays of opaque uniforms take only one binding number for
           the entire object, not one per array element
@@ -134,7 +139,7 @@ Overview
             int member1;
             float member2;
             ...
-        } InstanceName;
+        } InstanceName; // optional instance name
 
         ... = InstanceName.member2; // read a push constant
 
@@ -216,7 +221,7 @@ Overview
 
     The constant_id can only be applied to a scalar *int*, a scalar *float*
     or a scalar *bool*.
-    
+
     Only basic operators and constructors can be applied to a specialization
     constant and still result in a specialization constant:
 
@@ -320,8 +325,9 @@ Overview
       uniform blockN { ... } ...;  -> Uniform, with Block decoration
       in / out variable            -> Input/Output, possibly with block (below)
       in / out block...            -> Input/Output, with Block decoration
-      buffer  blockN { ... } ...;  -> Uniform, with BufferBlock decoration
-      ... uniform atomic_uint ...  -> AtomicCounter
+      buffer  blockN { ... } ...;  -> Uniform, with BufferBlock decoration, or
+                                      StorageBuffer, when requested
+      N/A                          -> AtomicCounter
       shared                       -> Workgroup
       <normal global>              -> Private
 
@@ -374,19 +380,21 @@ Overview
 
         Non-fragment stage:
 
-            in/out gl_PerVertex {
+            in/out gl_PerVertex {   // some subset of these members will be used
                 gl_Position
                 gl_PointSize
                 gl_ClipDistance
                 gl_CullDistance
-            }                        (name of block is for debug only)
+            }                       // name of block is for debug only
 
       There is at most one input and one output block per stage in SPIR-V.
+      The subset and order of members will match between stages sharing an
+      interface.
 
     Mapping of precision qualifiers:
 
-      lowp     -> RelaxedPrecision, on variable and operation
-      mediump  -> RelaxedPrecision, on variable and operation
+      lowp     -> RelaxedPrecision, on storage variable and operation
+      mediump  -> RelaxedPrecision, on storage variable and operation
       highp    -> 32-bit, same as int or float
 
       portability tool/mode  -> OpQuantizeToF16
@@ -412,7 +420,7 @@ Overview
     Mapping of layouts
 
       std140/std430  ->  explicit offsets/strides on struct
-      shared/packed  ->  not allowed 
+      shared/packed  ->  not allowed
       <default>      ->  not shared, but std140 or std430
 
       max_vertices   ->  OutputVertices
@@ -421,13 +429,13 @@ Overview
 
       %     -> OpUMod/OpSMod
       mod() -> OpFMod
-      NA    -> OpSRem/OpFRem
+      N/A   -> OpSRem/OpFRem
 
       atomicExchange()      -> OpAtomicExchange
       imageAtomicExchange() -> OpAtomicExchange
       atomicCompSwap()      -> OpAtomicCompareExchange
       imageAtomicCompSwap() -> OpAtomicCompareExchange
-      NA                    -> OpAtomicCompareExchangeWeak
+      N/A                   -> OpAtomicCompareExchangeWeak
 
 Changes to Chapter 1 of the OpenGL Shading Language Specification
 
@@ -437,7 +445,7 @@ Changes to Chapter 1 of the OpenGL Shading Language Specification
 
     Add a paragraph: "The Vulkan API will specify the Vulkan entry points used
     to manipulate SPIR-V shaders.  Independent offline tool chains will compile
-    GLSL down to the SPIR-V intermediate language. Vulkan use is not enabled 
+    GLSL down to the SPIR-V intermediate language. Vulkan use is not enabled
     with a #extension, #version, or a profile.  Instead, use of GLSL for Vulkan
     is determined by offline tool-chain use. See the documentation of such
     tools to see how to request generation of SPIR-V for Vulkan."
@@ -475,7 +483,7 @@ Changes to Chapter 3 of the OpenGL Shading Language Specification
         textureCube      texture2DRect    texture1DArray
         texture2DArray   textureBuffer    texture2DMS
         texture2DMSArray textureCubeArray
-        
+
         itexture1D        itexture2D       itexture3D
         itextureCube      itexture2DRect   itexture1DArray
         itexture2DArray   itextureBuffer
@@ -492,10 +500,17 @@ Changes to Chapter 3 of the OpenGL Shading Language Specification
         subpassInput      isubpassInput     usubpassInput
         subpassInputMS    isubpassInputMS   usubpassInputMS
 
+    Move the following keywords in section 3.6 Keywords to the reserved
+    section:
+
+        atomic_uint
+        subroutine
+
 Changes to Chapter 4 of the OpenGL Shading Language Specification
 
-    Add into the tables in section 4.1, interleaved with the existing types,
-    using the existing descriptions (when not supplied below):
+    Add into the tables in section 4.1 Basic Types, interleaved with the
+    existing types, using the existing descriptions (when not supplied
+    below):
 
         Floating-Point Opaque Types
 
@@ -550,6 +565,10 @@ Changes to Chapter 4 of the OpenGL Shading Language Specification
             usubpassInputMS   | a handle for accessing a multi-sampled unsigned
                               | integer subpass input
 
+    Remove the entry from the table in section 4.1 Basic Types:
+
+        atomic_uint
+
     Add a new category in this section
 
       "Sampler Opaque Types
@@ -560,10 +579,15 @@ Changes to Chapter 4 of the OpenGL Shading Language Specification
           samplerShadow |    a handle for accessing state describing how to
                         |    sample a depth texture with comparison"
 
-
-
     Remove "structure member selection" from 4.1.7 and instead add a sentence
     "Opaque types cannot be declared or nested in a structure (struct)."
+
+    Modify subsection 4.1.3 Integers, for desktop versions of GLSL, to say:
+
+        "Highp unsigned integers have exactly 32 bits of precision.  Highp
+        signed integers use 32 bits, including a sign bit, in two's complement
+        form. Mediump and lowp integers are as defined by the RelaxedPrecision
+        decoration in SPIR-V."
 
     Add a subsection to 4.1.7 Opaque Types:
 
@@ -580,7 +604,7 @@ Changes to Chapter 4 of the OpenGL Shading Language Specification
         and unsigned integer data types. Textures can be combined with a
         variable of type *sampler* or *samplerShadow* to create a sampler type
         (e.g., sampler2D, or sampler2DShadow). This is done with a constructor,
-        e.g., sampler2D(texture2D, sampler) or 
+        e.g., sampler2D(texture2D, sampler) or
         sampler2DShadow(texture2D, samplerShadow),
         and is described in more detail in section 5.4 "Constructors"."
 
@@ -597,6 +621,8 @@ Changes to Chapter 4 of the OpenGL Shading Language Specification
 
         "Subpass input types are only available in fragment shaders.  It is a
         compile-time error to use them in any other stage."
+
+    Remove the section 4.1.7.3 Atomic Counters
 
     Change section 4.3.3 Constant Expressions:
 
@@ -700,6 +726,19 @@ Changes to Chapter 4 of the OpenGL Shading Language Specification
 
     (Making all stages have the same rule that dvec3 takes two locations...)
 
+    At the end of the paragraphs describing the *location* rules, add this
+    paragraph:
+
+      "When generating SPIR-V, all *in* and *out* qualified user-declared
+      (non built-in) variables and blocks (or all their members) must have a
+      shader-specified *location*. Otherwise, a compile-time error is
+      generated."
+
+    [Note that an earlier existing rule just above this says "If a block has
+    no block-level *location* layout qualifier, it is required that either all
+    or none of its members have a *location* layout qualifier, or a compile-
+    time error results."]
+
     Change section 4.4.1.3 "Fragment Shader Inputs" from
 
       "By default, gl_FragCoord assumes a lower-left origin for window
@@ -707,14 +746,14 @@ Changes to Chapter 4 of the OpenGL Shading Language Specification
       returned for the lowerleft-most pixel in a window. The origin can be
       changed by redeclaring gl_FragCoord with the
       origin_upper_left identifier."
-    
+
     To
 
       "The gl_FragCoord built-in variable assumes an upper-left origin for
       window coordinates ... For example, the (x, y) location (0.5, 0.5) is
       returned for the upper-left-most pixel in a window. The origin can be
       explicitly set by redeclaring gl_FragCoord with the origin_upper_left
-      identifier.  It is a compile-time error to change it to 
+      identifier.  It is a compile-time error to change it to
       origin_lower_left."
 
     Add to the end of section 4.4.3 Uniform Variable Layout Qualifiers:
@@ -724,8 +763,8 @@ Changes to Chapter 4 of the OpenGL Shading Language Specification
       compile-time error to apply this to anything other than a uniform block
       declaration.  The values in the block will be initialized through the
       API, as per the Vulkan API specification.  A block declared with
-      layout(push_constant) must have an /instance-name/ supplied, or a
-      compile-time error results.  There can be only one push_constant
+      layout(push_constant) may optionally include an /instance-name/.
+      There can be only one push_constant
       block per stage, or a compile-time or link-time error will result. A
       push-constant array can only be indexed with dynamically uniform indexes.
       Uniform blocks declared with push_constant use different resources
@@ -749,6 +788,9 @@ Changes to Chapter 4 of the OpenGL Shading Language Specification
       "It is a compile-time error for either the /set/ or /binding/ value
       to exceed a front-end-configuration supplied maximum value."
 
+    Remove mention of subroutine throughout section 4.4 Layout Qualifiers,
+    including removal of section 4.4.4 Subroutine Function Layout Qualifiers.
+
     Change section 4.4.6 Opaque-Uniform Layout Qualifiers:
 
       Change
@@ -762,6 +804,8 @@ Changes to Chapter 4 of the OpenGL Shading Language Specification
       "If the binding identifier is used with an array, the entire array
       takes just the provided binding number.  The next consecutive binding
       number is available for a different object."
+
+    Remove section 4.4.6.1 Atomic Counter Layout Qualifiers
 
     Add a new subsection at the end of section 4.4:
 
@@ -793,22 +837,22 @@ Changes to Chapter 4 of the OpenGL Shading Language Specification
       "The built-in constant vector gl_WorkGroupSize can be specialized using
       the local_size_{xyz}_id qualifiers, to individually give the components
       an id. For example:
-  
+
           layout(local_size_x_id = 18, local_size_z_id = 19) in;
 
       "This leaves gl_WorkGroupSize.y as a non-specialization constant, with
       gl_WorkGroupSize being a partially specialized vector.  Its x and z
       components can be later specialized using the ids 18 and 19.  These ids
       are declared independently from declaring the work-group size:
-  
+
         layout(local_size_x = 32, local_size_y = 32) in;   // size is (32,32,1)
         layout(local_size_x_id = 18) in;                   // constant_id for x
         layout(local_size_z_id = 19) in;                   // constant_id for z
-  
+
       "Existing rules for declaring local_size_x, local_size_y, and
       local_size_z are not changed by this extension. For the local-size ids,
       it is a compile-time error to provide different id values for the same
-      local-size id, or to provide them after any use.  Otherwise, order, 
+      local-size id, or to provide them after any use.  Otherwise, order,
       placement, number of statements, and replication do not cause errors.
 
       "Two arrays sized with specialization constants are the same type only if
@@ -823,9 +867,9 @@ Changes to Chapter 4 of the OpenGL Shading Language Specification
         int e[aSize + 2];              // different type than a, b, c, or d
 
       "Types containing arrays sized with a specialization constant cannot be
-      compared, assigned as aggregates, or used in initializers.  They can,
-      however, be passed as arguments to functions having formal parameters of
-      the same type.
+      compared, assigned as aggregates, declared with an initializer, or used
+      as an initializer.  They can, however, be passed as arguments to
+      functions having formal parameters of the same type.
 
       "Arrays inside a block may be sized with a specialization constant, but
       the block will have a static layout.  Changing the specialized size will
@@ -855,7 +899,7 @@ Changes to Chapter 4 of the OpenGL Shading Language Specification
       in the implicit input_attachment_index consumed by array declarations.
 
       "It is a compile-time error if the value assigned to an
-      input_attachment_index is greater than or equal to 
+      input_attachment_index is greater than or equal to
       gl_MaxInputAttachments."
 
     Remove all mention of the 'shared' and 'packed' layout qualifiers.
@@ -870,6 +914,94 @@ Changes to Chapter 4 of the OpenGL Shading Language Specification
       "However, when push_constant is declared, the default layout of the
       buffer will be std430. There is no method to globally set this default."
 
+    Add to section 4.4.5 Uniform and Shader Storage Block Layout Qualifiers,
+    for versions not having 'offset' and 'align' description language,
+    or replace with the following for versions that do have 'offset' and
+    'align' description language:
+
+      "The 'offset' qualifier can only be used on block members of 'uniform' or
+      'buffer' blocks. The 'offset' qualifier forces the qualified member to
+      start at or after the specified integral-constant-expression, which will
+      be its byte offset from the beginning of the buffer. It is a compile-time
+      error to have any offset, explicit or assigned, that lies within another
+      member of the block. Two blocks linked together in the same program with
+      the same block name must have the exact same set of members qualified
+      with 'offset' and their integral-constant-expression values must be the
+      same, or a link-time error results. The specified 'offset' must be a
+      multiple of the base alignment of the type of the block member it
+      qualifies, or a compile-time error results.
+
+      "The 'align' qualifier can only be used on block members of 'uniform' or
+      'buffer' blocks. The 'align' qualifier makes the start of each block
+      buffer have a minimum byte alignment. It does not affect the internal
+      layout within each member, which will still follow the std140 or std430
+      rules. The specified alignment must be greater than 0 and a power of 2,
+      or a compile-time error results.
+
+      "The actual alignment of a member will be the greater of the specified
+      'align' alignment and the standard (e.g., std140) base alignment for the
+      member's type. The actual offset of a member is computed as follows:
+      If 'offset' was declared, start with that offset, otherwise start with
+      the offset immediately following the preceding member (in declaration
+      order). If the resulting offset is not a multiple of the actual
+      alignment, increase it to the first offset that is a multiple of the
+      actual alignment. This results in the actual offset the member will have.
+
+      "When 'align' is applied to an array, it affects only the start of the
+      array, not the array's internal stride. Both an 'offset' and an 'align'
+      qualifier can be specified on a declaration.
+
+      "The 'align' qualifier, when used on a block, has the same effect as
+      qualifying each member with the same 'align' value as declared on the
+      block, and gets the same compile-time results and errors as if this had
+      been done. As described in general earlier, an individual member can
+      specify its own 'align', which overrides the block-level 'align', but
+      just for that member."
+
+    Remove the following preamble from section 4.7, which exists for desktop
+    versions, but not ES versions.  Removal:
+
+      "Precision qualifiers are added for code portability with OpenGL ES, not
+      for functionality. They have the same syntax as in OpenGL ES, as
+      described below, but they have no semantic meaning, which includes no
+      effect on the precision used to store or operate on variables.
+
+      "If an extension adds in the same semantics and functionality in the
+      OpenGL ES 2.0 specification for precision qualifiers, then the extension
+      is allowed to reuse the keywords below for that purpose.
+
+      "For the purposes of determining if an output from one shader stage
+      matches an input of the next stage, the precision qualifier need not
+      match."
+
+    Add:
+
+      "For interface matching, uniform variables and uniform and buffer block
+      members must have the same precision qualification. For matching *out*
+      variables or block members to *in* variables and block members, the
+      precision qualification does not have to match.
+
+      "Global variables declared in different compilation units linked into the
+      same shader stage must be declared with the same precision qualification."
+
+    More generally, all versions will follow OpenGL ES semantic rules for
+    precision qualifiers.
+
+    Section 4.7.2 Precision Qualifiers (desktop only)
+
+      Replace the table saying "none" for all precisions with this statement:
+
+        "Mediump and lowp floating-point values have the precision defined by
+        the RelaxedPrecision decoration in SPIR-V."
+
+    Section 4.7.4 Default Precision Qualifiers:
+
+      For desktop versions, replace the last three paragraphs that state the
+      default precisions with the following instead:
+
+        "All stages have default precision qualification of highp for all types
+        that accept precision qualifiers."
+
 Changes to Chapter 5 of the OpenGL Shading Language Specification
 
     Add a new subsection at the end of section 5.4 "Constructors":
@@ -882,9 +1014,9 @@ Changes to Chapter 5 of the OpenGL Shading Language Specification
 
           layout(...) uniform sampler s;   // handle to filtering information
           layout(...) uniform texture2D t; // handle to a texture
-          in vec2 tCoord;
+          layout(...) in vec2 tCoord;
           ...
-          texture2D(sampler2D(t, s), tCoord);
+          texture(sampler2D(t, s), tCoord);
 
         The result of a sampler constructor cannot be assigned to a variable:
 
@@ -943,24 +1075,31 @@ Changes to Chapter 5 of the OpenGL Shading Language Specification
       operators and with another constant or specialization constant, the
       result is implicitly a specialization constant.
 
-       - int(), uint(), float(), and bool() constructors for type conversions
+       - int(), uint(), and bool() constructors for type conversions
          from any of the following types to any of the following types:
            * int
            * uint
-           * float
-           * double
            * bool
        - vector versions of the above conversion constructors
        - allowed implicit conversions of the above
-       - The operators
+       - swizzles (e.g., foo.yx)
+       - The following when applied to integer or unsigned integer types:
            * unary negative ( - )
-           * not ( ! )
            * binary operations ( + , - , * , / , % )
            * shift ( <<, >> )
            * bitwise operations ( & , | , ^ )
-           * swizzles (e.g., foo.yx)
-           * logical operations ( && , || , ^^ )
+       - The following when applied to integer or unsigned integer scalar types:
            * comparison ( == , != , > , >= , < , <= )
+       - The following when applied to the Boolean scalar type:
+           * not ( ! )
+           * logical operations ( && , || , ^^ )
+           * comparison ( == , != )
+       - The ternary operator ( ? : )
+
+Changes to Chapter 6 of the OpenGL Shading Language Specification
+
+    Remove mention of subroutine throughout, including removal of
+    section 6.1.2 Subroutines.
 
 Changes to Chapter 7 of the OpenGL Shading Language Specification
 
@@ -1000,7 +1139,81 @@ Changes to Chapter 7 of the OpenGL Shading Language Specification
 
         "const int gl_MaxInputAttachments = 1;"
 
+    Remove section 7.4 Built-In Uniform State (there is none in Vulkan).
+
 Changes to Chapter 8 of the OpenGL Shading Language Specification
+
+    Add the following ES language to desktop versions of the specification:
+
+      "The operation of a built-in function can have a different precision
+      qualification than the precision qualification of the resulting value.
+      These two precision qualifications are established as follows.
+
+      "The precision qualification of the operation of a built-in function is
+      based on the precision qualification of its input arguments and formal
+      parameters:  When a formal parameter specifies a precision qualifier,
+      that is used, otherwise, the precision qualification of the calling
+      argument is used.  The highest precision of these will be the precision
+      qualification of the operation of the built-in function. Generally,
+      this is applied across all arguments to a built-in function, with the
+      exceptions being:
+        - bitfieldExtract and bitfieldInsert ignore the 'offset' and 'bits'
+          arguments.
+        - interpolateAt* functions only look at the 'interpolant' argument.
+
+      "The precision qualification of the result of a built-in function is
+      determined in one of the following ways:
+
+        - For the texture sampling, image load, and image store functions,
+          the precision of the return type matches the precision of the
+          sampler type:
+             uniform lowp sampler2D sampler;
+             highp vec2 coord;
+             ...
+             lowp vec4 col = texture (sampler, coord); // texture() returns lowp
+
+        Otherwise:
+
+        - For prototypes that do not specify a resulting precision qualifier,
+          the precision will be the same as the precision of the operation.
+          (As defined earlier.)
+
+        - For prototypes that do specify a resulting precision qualifier,
+          the specified precision qualifier is the precision qualification of
+          the result."
+
+    Add precision qualifiers to the following in desktop versions:
+
+      genIType floatBitsToInt (highp genFType value)
+      genUType floatBitsToUint(highp genFType value)
+      genFType intBitsToFloat (highp genIType value)
+      genFType uintBitsToFloat(highp genUType value)
+
+      genFType frexp(highp genFType x, out highp genIType exp)
+      genFType ldexp(highp genFType x,  in highp genIType exp)
+
+      highp uint packSnorm2x16(vec2 v)
+      vec2 unpackSnorm2x16(highp uint p)
+      highp uint packUnorm2x16(vec2 v)
+      vec2 unpackUnorm2x16(highp uint p)
+      vec2 unpackHalf2x16(highp uint v)
+      vec4 unpackUnorm4x8(highp uint v)
+      vec4 unpackSnorm4x8(highp uint v)
+
+      genIType bitfieldReverse(highp genIType value)
+      genUType bitfieldReverse(highp genUType value)
+      genIType findMSB(highp genIType value)
+      genIType findMSB(highp genUType value)
+      genUType uaddCarry(highp genUType x, highp genUType y,
+                         out lowp genUType carry)
+      genUType usubBorrow(highp genUType x, highp genUType y,
+                          out lowp genUType borrow)
+      void umulExtended(highp genUType x, highp genUType y,
+                        out highp genUType msb, out highp genUType lsb)
+      void imulExtended(highp genIType x, highp genIType y,
+                        out highp genIType msb, out highp genIType lsb)
+
+    Remove section 8.10 Atomic-Counter Functions
 
     Add a section
 
@@ -1029,7 +1242,7 @@ Changes to the grammar
 
       | LEFT_BRACKET constant_expression RIGHT_BRACKET
 
-    to 
+    to
 
       | LEFT_BRACKET conditional_expression RIGHT_BRACKET
 
@@ -1037,9 +1250,13 @@ Changes to the grammar
 
       | array_specifier LEFT_BRACKET constant_expression RIGHT_BRACKET
 
-    to 
+    to
 
       | array_specifier LEFT_BRACKET conditional_expression RIGHT_BRACKET
+
+    Remove the ATOMIC_UINT type_specifier_nonarray.
+
+    Remove all instances of the SUBROUTINE keyword.
 
 Issues
 
@@ -1154,6 +1371,22 @@ Revision History
 
     Rev.    Date         Author    Changes
     ----  -----------    -------  --------------------------------------------
+    40    21-May-2017    JohnK    Require in/out explicit locations
+    39    14-Apr-2017    JohnK    Update overview for StorageBuffer storage
+                                  class.
+    38    14-Apr-2017    JohnK    Fix Vulkan public issue #466: texture2D typo.
+    37    26-Mar-2017    JohnK    Fix glslang issue #369: remove gl_NumSamples.
+    36    13-Feb-2017    JohnK    Fix public bug 428: allow anonymous
+                                  push_constant blocks.
+    35    07-Feb-2017    JohnK    Add 'offset' and 'align' to all versions
+    34    26-Jan-2017    JohnK    Allow the ternary operator to result in a
+                                  specialization constant
+    33    30-Aug-2016    JohnK    Allow out-of-order offsets in a block
+    32     1-Aug-2016    JohnK    Remove atomic_uint and more fully subroutine
+    31    20-Jul-2016    JohnK    Have desktop versions respect mediump/lowp
+    30    12-Apr-2016    JohnK    Restrict spec-const operations to non-float
+    29     5-Apr-2016    JohnK    Clarify disallowance of spec-const arrays in
+                                  initializers
     28     7-Mar-2016    JohnK    Make push_constants not have sets
     27    28-Feb-2016    JohnK    Make the default by origin_upper_left
     26    17-Feb-2016    JohnK    Expand specialized array semantics

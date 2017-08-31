@@ -8,3 +8,4 @@ bool ? A:B			bool and A or B, A必须为True
 全局变量：			在函数中被写访问时，需要先用global声明。以'_'开头的变量不会被from module import *导入
 _命名：				以两个以上下划线开头，并没有以两个以上下划线结尾，视为私有成员。__XXX会被转换为_类名__XXX
 NULL关键字:			None
+float2hex:			struct.pack("<f", 1.0).encode("hex")

@@ -1,0 +1,2 @@
+VS2017 recreate code browsing database:
+Tools->Options->TextEditor->C/C++->Advanced->Recreate Database, 下次启动时会重建db文件，然后此项会自动disable。
